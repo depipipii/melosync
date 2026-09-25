@@ -1,75 +1,100 @@
-# React + TypeScript + Vite
+# MeloSync
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+MeloSync adalah website musik yang digunakan untuk mencari dan mendengarkan lagu secara online.
 
-Currently, two official plugins are available:
+Website ini menyediakan fitur seperti pencarian lagu, informasi artis dan album, playlist, lagu favorit, riwayat lagu, serta pengelompokan lagu berdasarkan mood dan aktivitas.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tujuan
 
-## React Compiler
+MeloSync dibuat untuk memudahkan pengguna dalam mencari dan mendengarkan lagu sesuai dengan kebutuhan dan suasana mereka.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+MeloSync memiliki konsep pengelompokan lagu berdasarkan mood dan aktivitas, seperti:
 
-## Expanding the ESLint configuration
+* Belajar
+* Santai
+* Olahraga
+* Tidur
+* Semangat
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Dengan konsep tersebut, pengguna dapat lebih mudah menemukan lagu yang sesuai dengan suasana atau kegiatan yang sedang dilakukan.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Fitur Utama
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+* Pencarian lagu
+* Pemutaran lagu
+* Informasi artis
+* Informasi album
+* Playlist
+* Lagu favorit
+* Riwayat lagu
+* Playlist berdasarkan mood
+* Playlist berdasarkan aktivitas
+* Login dan registrasi pengguna
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Penjelasan fitur secara lengkap terdapat pada `docs/fitur.md`.
 
+## Teknologi
+
+MeloSync dikembangkan menggunakan:
+
+* React
+* TypeScript
+* Vite
+* ESLint
+* Tailwind CSS
+* Supabase
+* Vercel
+* Git
+* GitHub
+
+## Tim Pengembang
+
+| Nama   | Role      | Tanggung Jawab                                           |
+| ------ | --------- | -------------------------------------------------------- |
+| Deva   | DevOps    | Git, GitHub, branch, deployment, dan konfigurasi project |
+| Rendra | Front-End | Tampilan website dan implementasi antarmuka              |
+| Dimas  | Back-End  | Database, autentikasi, Supabase, dan pengelolaan data    |
+
+## Dokumentasi
+
+Dokumentasi project terdapat pada folder `docs/`.
+
+* `docs/konsep.md` → konsep dan tujuan project
+* `docs/fitur.md` → daftar fitur dan penanggung jawab
+* `docs/pembagian-tugas.md` → pembagian tugas setiap anggota
+* `docs/database.md` → rancangan database
+
+## Struktur Branch
+
+Project menggunakan dua branch utama:
+
+* `main` → versi project yang sudah diperiksa dan stabil
+* `develop` → branch pengembangan dan pengecekan
+
+Jika diperlukan, branch fitur dapat dibuat untuk mengerjakan bagian tertentu.
+
+Contoh:
+
+```text
+feature/navbar
+feature/search
+feature/music-player
+feature/playlist
+feature/supabase
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Setelah fitur selesai dan diperiksa, perubahan dapat digabungkan ke `develop`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Jika project sudah stabil, `develop` dapat digabungkan ke `main`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Pengembangan Project
 
-```
+Setiap anggota mengerjakan bagian sesuai dengan role dan pembagian tugas.
+
+Setiap perubahan penting dicatat menggunakan Git agar perkembangan project dapat dipantau melalui GitHub.
+
+## Repository
+
+Repository MeloSync:
+
+https://github.com/depipipii/melosync
