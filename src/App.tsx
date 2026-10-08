@@ -14,6 +14,15 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(75);
   const [activeMood, setActiveMood] = useState('All');
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
+
+  const toggleFavorite = (id: number) => {
+    setFavorites(prev => 
+      prev.includes(id) ? prev.filter(fId => fId !== id) : [...prev, id]
+    );
+  };
 
   const lyricsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -57,6 +66,7 @@ export default function App() {
   };
 
   const handleTrackSelect = (track: typeof TRACKS[0]) => {
+    setHasStartedPlaying(true);
     if (currentTrack.id === track.id) {
       handlePlayPause();
     } else {
@@ -97,7 +107,12 @@ export default function App() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const filteredTracks = TRACKS.filter(t => activeMood === 'All' || t.mood === activeMood);
+  const filteredTracks = TRACKS.filter(t => {
+    const matchesMood = activeMood === 'All' || t.mood === activeMood;
+    const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          t.artist.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesMood && matchesSearch;
+  });
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-slate-200 font-sans flex overflow-hidden selection:bg-white/30">
@@ -123,8 +138,15 @@ export default function App() {
               {showLyrics ? 'Lyrics View' : activeTab}
             </h1>
             <div className="flex gap-4 items-center">
-              <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 cursor-pointer transition-colors backdrop-blur-md">
-                <Search className="w-4 h-4 text-slate-300" />
+              <div className="flex items-center bg-white/5 border border-white/10 rounded-full px-4 py-2 hover:bg-white/10 transition-colors backdrop-blur-md focus-within:bg-white/10 focus-within:border-white/30">
+                <Search className="w-4 h-4 text-slate-300 mr-2 shrink-0" />
+                <input 
+                  type="text" 
+                  placeholder="Search tracks..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-transparent border-none outline-none text-sm text-white placeholder:text-slate-500 w-32 md:w-48 transition-all"
+                />
               </div>
               <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 overflow-hidden cursor-pointer hover:border-white/40 transition-colors shadow-lg">
                 <img src="https://ui-avatars.com/api/?name=Guest&background=random&color=fff" alt="Profile" className="w-full h-full object-cover" />
@@ -235,7 +257,10 @@ export default function App() {
                         </div>
 
                         <div className="flex items-center gap-4 sm:gap-6">
-                          <Heart className="w-4 h-4 text-slate-600 opacity-0 group-hover:opacity-100 hover:text-rose-500 transition-all" />
+                          <Heart 
+                            className={`w-4 h-4 cursor-pointer transition-all ${favorites.includes(track.id) ? 'text-rose-500 fill-current opacity-100' : 'text-slate-600 opacity-0 group-hover:opacity-100 hover:text-rose-500'}`}
+                            onClick={(e) => { e.stopPropagation(); toggleFavorite(track.id); }}
+                          />
                           <span className="text-sm text-slate-500 w-10 sm:w-12 text-right font-medium">{formatTime(track.duration)}</span>
                           <MoreHorizontal className="w-5 h-5 text-slate-600 opacity-0 group-hover:opacity-100 hover:text-white transition-all hidden sm:block" />
                         </div>
@@ -272,6 +297,84 @@ export default function App() {
                 </div>
               </div>
             </div>
+          ) : activeTab === 'Favorites' ? (
+            // FAVORITES VIEW
+            <div className="animate-in fade-in duration-700">
+              <h2 className="text-2xl font-light text-white mb-6">Your Favorite Tracks</h2>
+              <section className="bg-slate-900/30 border border-white/5 rounded-[2rem] p-4 md:p-6 backdrop-blur-xl shadow-2xl">
+                <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-4 px-4 py-3 border-b border-white/5 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-2">
+                  <div className="w-8 text-center">#</div>
+                  <div>Title</div>
+                  <div className="hidden sm:block">Album</div>
+                  <div className="pr-4"><Clock className="w-4 h-4" /></div>
+                </div>
+
+                <div className="space-y-1">
+                  {TRACKS.filter(t => favorites.includes(t.id) && (
+                    t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                    t.artist.toLowerCase().includes(searchQuery.toLowerCase())
+                  )).map((track, idx) => {
+                    const isCurrent = currentTrack.id === track.id;
+                    return (
+                      <div
+                        key={track.id}
+                        onDoubleClick={() => handleTrackSelect(track)}
+                        className={`grid grid-cols-[auto_1fr_1fr_auto] gap-4 items-center px-4 py-3 rounded-2xl transition-all duration-300 cursor-pointer group ${isCurrent ? 'bg-white/10 shadow-[0_4px_15px_rgba(0,0,0,0.2)] border border-white/5' : 'hover:bg-white/5'
+                          }`}
+                      >
+                        <div className="w-8 flex justify-center items-center">
+                          {isCurrent && isPlaying ? (
+                            <div className="flex items-end justify-center gap-[3px] h-4 w-4">
+                              <div className="w-1 bg-violet-400 rounded-full animate-eq-1"></div>
+                              <div className="w-1 bg-white rounded-full animate-eq-2"></div>
+                              <div className="w-1 bg-rose-400 rounded-full animate-eq-3"></div>
+                            </div>
+                          ) : (
+                            <span className={`text-sm font-medium ${isCurrent ? 'text-violet-300' : 'text-slate-600 group-hover:text-slate-400'}`}>
+                              {String(idx + 1).padStart(2, '0')}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-md">
+                            <img src={track.cover} alt={track.title} className="w-full h-full object-cover" />
+                            <div
+                              onClick={(e) => { e.stopPropagation(); handleTrackSelect(track); }}
+                              className={`absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px] ${isCurrent && isPlaying ? 'opacity-0' : ''}`}
+                            >
+                              <Play className="w-5 h-5 text-white fill-current ml-0.5" />
+                            </div>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className={`text-base font-medium transition-colors ${isCurrent ? 'text-white' : 'text-slate-300'}`}>
+                              {track.title}
+                            </span>
+                            <span className="text-sm text-slate-500">{track.artist}</span>
+                          </div>
+                        </div>
+
+                        <div className="text-sm text-slate-400 hidden sm:block truncate pr-4">
+                          {track.album}
+                        </div>
+
+                        <div className="flex items-center gap-4 sm:gap-6">
+                          <Heart 
+                            className={`w-4 h-4 cursor-pointer transition-all ${favorites.includes(track.id) ? 'text-rose-500 fill-current opacity-100' : 'text-slate-600 opacity-0 group-hover:opacity-100 hover:text-rose-500'}`}
+                            onClick={(e) => { e.stopPropagation(); toggleFavorite(track.id); }}
+                          />
+                          <span className="text-sm text-slate-500 w-10 sm:w-12 text-right font-medium">{formatTime(track.duration)}</span>
+                          <MoreHorizontal className="w-5 h-5 text-slate-600 opacity-0 group-hover:opacity-100 hover:text-white transition-all hidden sm:block" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {favorites.length === 0 && (
+                    <div className="text-center py-20 text-slate-500">No favorite tracks yet.</div>
+                  )}
+                </div>
+              </section>
+            </div>
           ) : (
             // LIBRARY VIEW
             <div className="animate-in fade-in duration-700">
@@ -304,20 +407,24 @@ export default function App() {
       </main>
 
       {/* Persistent Floating Bottom Player */}
-      <PlayerBar 
-        currentTrack={currentTrack}
-        isPlaying={isPlaying}
-        progress={progress}
-        volume={volume}
-        showLyrics={showLyrics}
-        handlePlayPause={handlePlayPause}
-        handleNext={handleNext}
-        handlePrev={handlePrev}
-        setProgress={setProgress}
-        setShowLyrics={setShowLyrics}
-        setVolume={setVolume}
-        formatTime={formatTime}
-      />
+      {hasStartedPlaying && (
+        <PlayerBar 
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          progress={progress}
+          volume={volume}
+          showLyrics={showLyrics}
+          handlePlayPause={handlePlayPause}
+          handleNext={handleNext}
+          handlePrev={handlePrev}
+          setProgress={setProgress}
+          setShowLyrics={setShowLyrics}
+          setVolume={setVolume}
+          formatTime={formatTime}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+        />
+      )}
 
       {/* Global Styles injected via style tag */}
       <style dangerouslySetInnerHTML={{

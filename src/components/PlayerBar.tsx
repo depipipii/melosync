@@ -17,6 +17,8 @@ interface PlayerBarProps {
   setShowLyrics: (show: boolean) => void;
   setVolume: (volume: number) => void;
   formatTime: (seconds: number) => string;
+  favorites: number[];
+  toggleFavorite: (id: number) => void;
 }
 
 export default function PlayerBar({
@@ -31,7 +33,9 @@ export default function PlayerBar({
   setProgress,
   setShowLyrics,
   setVolume,
-  formatTime
+  formatTime,
+  favorites,
+  toggleFavorite
 }: PlayerBarProps) {
   return (
     <div className="fixed bottom-6 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-[95%] max-w-6xl h-24 bg-slate-900/60 backdrop-blur-3xl border border-white/10 rounded-[2rem] flex items-center px-4 md:px-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 transition-all duration-500">
@@ -46,7 +50,10 @@ export default function PlayerBar({
           </div>
           <span className="text-xs text-slate-400 truncate hover:underline cursor-pointer mt-0.5">{currentTrack.artist}</span>
         </div>
-        <Heart className="w-4 h-4 text-slate-500 hover:text-rose-500 cursor-pointer hidden lg:block ml-2 transition-colors" />
+        <Heart 
+          className={`w-4 h-4 cursor-pointer hidden lg:block ml-2 transition-colors ${favorites.includes(currentTrack.id) ? 'text-rose-500 fill-current' : 'text-slate-500 hover:text-rose-500'}`}
+          onClick={() => toggleFavorite(currentTrack.id)}
+        />
       </div>
 
       {/* Core Controls & Progress (Center) */}
