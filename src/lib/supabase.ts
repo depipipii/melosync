@@ -1,21 +1,30 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+let supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+
+/* Clean up URL if /rest/v1/ or trailing slashes were included */
+if (supabaseUrl) {
+  supabaseUrl = supabaseUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '')
+}
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    '⚠️  Missing Supabase credentials! Periksa file .env kamu: VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY harus diisi.'
+  console.warn(
+    '⚠️ Missing Supabase credentials! Periksa file .env kamu: VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY harus diisi.'
   )
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-})
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-anon-key',
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  }
+)
 
 export type Database = {
   public: {

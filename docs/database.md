@@ -1,38 +1,39 @@
 # Database MeloSync
 
-MeloSync menggunakan **Supabase** sebagai layanan Back-End dan database.
+MeloSync menggunakan **Supabase** sebagai layanan Back-End dan database PostgreSQL.
 
-Database dirancang menggunakan PostgreSQL yang disediakan oleh Supabase.
+Database dirancang dan diintegrasikan dengan TypeScript Types yang aman (*type-safe*) pada file `src/lib/supabase.ts`.
 
-> Struktur database ini merupakan rancangan awal dan dapat berubah sesuai kebutuhan project.
+---
 
 # 1. Fungsi Database
 
 Database digunakan untuk menyimpan dan mengelola:
 
-* Data pengguna
-* Data artis
-* Data album
-* Data lagu
-* Data playlist
-* Data lagu favorit
-* Data riwayat lagu
-* Data mood
-* Data aktivitas
+* Data profil pengguna (`profiles`)
+* Data artis (`artists`)
+* Data album (`albums`)
+* Data lagu & lirik (`songs`)
+* Data playlist (`playlists`)
+* Data lagu favorit (`favorites`)
+* Data riwayat pemutaran (`recently_played`)
+* Data mood dan aktivitas
+
+---
 
 # 2. Gambaran Relasi
 
 Gambaran hubungan antar data:
 
 ```text
-Users
+Profiles (Users)
  │
  ├── Favorites ───────────── Songs
- │
+ │                            │
  ├── Recently Played ─────── Songs
- │
- └── Playlists
-       │
+ │                            │
+ └── Playlists                │
+       │                      │
        └── Playlist Songs ─── Songs
                               │
                     ┌─────────┴─────────┐
@@ -40,302 +41,190 @@ Users
                  Artists              Albums
 ```
 
-# 3. Tabel Users
+---
 
-Tabel pengguna digunakan untuk menyimpan data tambahan pengguna.
+# 3. Tabel `profiles` (Users)
 
-| Kolom      | Tipe      | Keterangan        |
-| ---------- | --------- | ----------------- |
-| id         | UUID      | ID pengguna       |
-| username   | TEXT      | Nama pengguna     |
-| email      | TEXT      | Email pengguna    |
-| created_at | TIMESTAMP | Waktu akun dibuat |
+Menyimpan data profil publik dan informasi akun pengguna.
 
-Autentikasi pengguna akan menggunakan **Supabase Auth**.
+| Kolom | Tipe | Keterangan |
+| ----- | ---- | ---------- |
+| `id` | UUID (PK) | ID pengguna (terhubung dengan Supabase Auth) |
+| `email` | TEXT | Email pengguna |
+| `username` | TEXT | Username pengguna |
+| `display_name` | TEXT | Nama tampilan pengguna |
+| `bio` | TEXT | Biografi / deskripsi singkat |
+| `avatar_url` | TEXT | URL foto profil pengguna |
+| `location` | TEXT | Lokasi pengguna |
+| `membership_tier` | TEXT | Tingkat keanggotaan (contoh: Pro Hi-Fi Member) |
+| `created_at` | TIMESTAMP | Waktu profil dibuat |
+| `updated_at` | TIMESTAMP | Waktu profil terakhir diperbarui |
 
-# 4. Tabel Artists
+---
 
-Menyimpan informasi artis.
+# 4. Tabel `artists`
 
-| Kolom       | Tipe      | Keterangan        |
-| ----------- | --------- | ----------------- |
-| id          | UUID      | ID artis          |
-| name        | TEXT      | Nama artis        |
-| image_url   | TEXT      | Foto artis        |
-| description | TEXT      | Deskripsi artis   |
-| created_at  | TIMESTAMP | Waktu data dibuat |
+Menyimpan informasi tentang artis / musisi.
 
-Relasi:
+| Kolom | Tipe | Keterangan |
+| ----- | ---- | ---------- |
+| `id` | UUID (PK) | ID artis |
+| `name` | TEXT | Nama artis |
+| `genre` | TEXT | Genre musik utama |
+| `monthly_listeners` | INTEGER | Jumlah pendengar bulanan |
+| `image_url` | TEXT | URL foto artis |
+| `description` | TEXT | Biografi / deskripsi artis |
+| `created_at` | TIMESTAMP | Waktu data dibuat |
+| `updated_at` | TIMESTAMP | Waktu data diperbarui |
 
-```text
-Artists
-   │
-   └── Songs
-```
+---
 
-Satu artis dapat memiliki banyak lagu.
+# 5. Tabel `albums`
 
-# 5. Tabel Albums
+Menyimpan informasi album musik.
 
-Menyimpan informasi album.
+| Kolom | Tipe | Keterangan |
+| ----- | ---- | ---------- |
+| `id` | UUID (PK) | ID album |
+| `artist_id` | UUID (FK) | ID artis pemilik album |
+| `title` | TEXT | Judul album |
+| `cover_url` | TEXT | URL gambar sampul album |
+| `release_date` | DATE | Tanggal rilis album |
+| `created_at` | TIMESTAMP | Waktu data dibuat |
 
-| Kolom        | Tipe      | Keterangan        |
-| ------------ | --------- | ----------------- |
-| id           | UUID      | ID album          |
-| artist_id    | UUID      | ID artis          |
-| title        | TEXT      | Nama album        |
-| cover_url    | TEXT      | Cover album       |
-| release_date | DATE      | Tanggal rilis     |
-| created_at   | TIMESTAMP | Waktu data dibuat |
+---
 
-Relasi:
+# 6. Tabel `songs`
 
-```text
-Artists
-   │
-   └── Albums
-          │
-          └── Songs
-```
+Menyimpan informasi detail lagu, audio, lirik, serta gaya visual ambient.
 
-# 6. Tabel Songs
+| Kolom | Tipe | Keterangan |
+| ----- | ---- | ---------- |
+| `id` | UUID (PK) | ID lagu |
+| `artist_id` | UUID (FK) | ID artis |
+| `album_id` | UUID (FK) | ID album (opsional) |
+| `title` | TEXT | Judul lagu |
+| `duration_seconds` | INTEGER | Durasi lagu dalam detik |
+| `mood` | TEXT | Kategori mood (Santai, Semangat, Fokus, dll.) |
+| `activity` | TEXT | Kategori aktivitas (Belajar, Olahraga, Tidur, dll.) |
+| `audio_url` | TEXT | URL file audio lagu |
+| `cover_url` | TEXT | URL gambar cover lagu |
+| `lyrics` | JSONB / TEXT | Data lirik tersinkronisasi (waktu & teks) |
+| `glow_primary` | TEXT | Warna glow ambient utama (Tailwind class) |
+| `glow_secondary` | TEXT | Warna glow ambient sekunder (Tailwind class) |
+| `source_type` | TEXT | Sumber audio (contoh: local, storage, stream) |
+| `is_active` | BOOLEAN | Status keaktifan lagu |
+| `created_at` | TIMESTAMP | Waktu data dibuat |
+| `updated_at` | TIMESTAMP | Waktu data diperbarui |
 
-Menyimpan informasi lagu.
+---
 
-| Kolom      | Tipe      | Keterangan            |
-| ---------- | --------- | --------------------- |
-| id         | UUID      | ID lagu               |
-| album_id   | UUID      | ID album              |
-| artist_id  | UUID      | ID artis              |
-| title      | TEXT      | Judul lagu            |
-| audio_url  | TEXT      | URL file audio        |
-| cover_url  | TEXT      | URL cover lagu        |
-| duration   | INTEGER   | Durasi lagu           |
-| mood       | TEXT      | Mood lagu             |
-| activity   | TEXT      | Aktivitas yang sesuai |
-| created_at | TIMESTAMP | Waktu data dibuat     |
+# 7. Tabel `playlists`
 
-Contoh mood:
+Menyimpan data playlist buatan pengguna maupun sistem.
 
-```text
-Santai
-Semangat
-Bahagia
-Sedih
-Fokus
-```
+| Kolom | Tipe | Keterangan |
+| ----- | ---- | ---------- |
+| `id` | UUID (PK) | ID playlist |
+| `owner_user_id` | UUID (FK) | ID pemilik playlist (null jika playlist sistem) |
+| `name` | TEXT | Nama playlist |
+| `description` | TEXT | Deskripsi playlist |
+| `cover_url` | TEXT | URL cover playlist |
+| `is_public` | BOOLEAN | Status publik / privat |
+| `is_system` | BOOLEAN | Status playlist buatan sistem |
+| `created_at` | TIMESTAMP | Waktu playlist dibuat |
+| `updated_at` | TIMESTAMP | Waktu playlist diperbarui |
 
-Contoh aktivitas:
+---
 
-```text
-Belajar
-Bekerja
-Olahraga
-Tidur
-Perjalanan
-```
+# 8. Tabel `playlist_songs`
 
-# 7. Tabel Playlists
+Tabel penghubung (*junction table*) antara playlist dan lagu.
 
-Menyimpan playlist yang dibuat pengguna.
+| Kolom | Tipe | Keterangan |
+| ----- | ---- | ---------- |
+| `id` | UUID (PK) | ID data |
+| `playlist_id` | UUID (FK) | ID playlist |
+| `song_id` | UUID (FK) | ID lagu |
+| `added_at` | TIMESTAMP | Waktu lagu ditambahkan ke playlist |
 
-| Kolom       | Tipe      | Keterangan         |
-| ----------- | --------- | ------------------ |
-| id          | UUID      | ID playlist        |
-| user_id     | UUID      | ID pengguna        |
-| name        | TEXT      | Nama playlist      |
-| description | TEXT      | Deskripsi playlist |
-| cover_url   | TEXT      | Cover playlist     |
-| created_at  | TIMESTAMP | Waktu dibuat       |
+---
 
-Relasi:
+# 9. Tabel `favorites`
 
-```text
-Users
-  │
-  └── Playlists
-```
+Menyimpan daftar lagu favorit pengguna.
 
-# 8. Tabel Playlist Songs
+| Kolom | Tipe | Keterangan |
+| ----- | ---- | ---------- |
+| `id` | UUID (PK) | ID data favorit |
+| `user_id` | UUID (FK) | ID pengguna |
+| `song_id` | UUID (FK) | ID lagu yang difavoritkan |
+| `created_at` | TIMESTAMP | Waktu lagu ditambahkan ke favorit |
 
-Tabel penghubung antara playlist dan lagu.
+---
 
-| Kolom       | Tipe      | Keterangan             |
-| ----------- | --------- | ---------------------- |
-| id          | UUID      | ID data                |
-| playlist_id | UUID      | ID playlist            |
-| song_id     | UUID      | ID lagu                |
-| added_at    | TIMESTAMP | Waktu lagu ditambahkan |
+# 10. Tabel `recently_played`
 
-Relasi:
+Menyimpan riwayat pemutaran lagu pengguna.
 
-```text
-Playlists
-    │
-    └── Playlist Songs
-              │
-              └── Songs
-```
+| Kolom | Tipe | Keterangan |
+| ----- | ---- | ---------- |
+| `id` | UUID (PK) | ID data riwayat |
+| `user_id` | UUID (FK) | ID pengguna |
+| `song_id` | UUID (FK) | ID lagu yang diputar |
+| `played_at` | TIMESTAMP | Waktu lagu diputar |
 
-Satu playlist dapat memiliki banyak lagu.
-
-Satu lagu juga dapat dimasukkan ke beberapa playlist.
-
-# 9. Tabel Favorites
-
-Menyimpan lagu favorit pengguna.
-
-| Kolom      | Tipe      | Keterangan        |
-| ---------- | --------- | ----------------- |
-| id         | UUID      | ID data           |
-| user_id    | UUID      | ID pengguna       |
-| song_id    | UUID      | ID lagu           |
-| created_at | TIMESTAMP | Waktu ditambahkan |
-
-Relasi:
-
-```text
-Users
-  │
-  └── Favorites ─── Songs
-```
-
-# 10. Tabel Recently Played
-
-Menyimpan riwayat lagu yang pernah diputar.
-
-| Kolom     | Tipe      | Keterangan         |
-| --------- | --------- | ------------------ |
-| id        | UUID      | ID data            |
-| user_id   | UUID      | ID pengguna        |
-| song_id   | UUID      | ID lagu            |
-| played_at | TIMESTAMP | Waktu lagu diputar |
-
-Relasi:
-
-```text
-Users
-  │
-  └── Recently Played ─── Songs
-```
+---
 
 # 11. Mood dan Aktivitas
 
-Mood dan aktivitas menjadi salah satu konsep utama MeloSync.
-
-Untuk tahap awal, kategori dapat disimpan langsung pada tabel `songs`.
-
-Contoh:
+Mood dan aktivitas disimpan langsung sebagai atribut pada tabel `songs` untuk performa pencarian yang optimal:
 
 ```text
 Songs
-│
-├── mood
-│   ├── Santai
-│   ├── Semangat
-│   ├── Bahagia
-│   ├── Sedih
-│   └── Fokus
-│
-└── activity
-    ├── Belajar
-    ├── Bekerja
-    ├── Olahraga
-    ├── Tidur
-    └── Perjalanan
+├── mood: Santai, Semangat, Fokus, Tidur, Belajar
+└── activity: Belajar, Bekerja, Olahraga, Tidur, Bersantai
 ```
 
-Jika kebutuhan project berkembang, mood dan aktivitas dapat dipisahkan menjadi tabel tersendiri.
+---
 
-# 12. Supabase Storage
+# 12. Integrasi Supabase Client
 
-Supabase Storage dapat digunakan untuk menyimpan file seperti:
+Aplikasi MeloSync secara otomatis menguji koneksi ke Supabase saat aplikasi di-mount:
 
-* Audio lagu
-* Cover album
-* Foto artis
-* Cover playlist
+```typescript
+import { createClient } from '@supabase/supabase-js'
 
-Contoh struktur:
-
-```text
-Supabase Storage
-│
-├── songs/
-│   ├── song-1.mp3
-│   └── song-2.mp3
-│
-├── albums/
-│   ├── album-1.jpg
-│   └── album-2.jpg
-│
-├── artists/
-│   ├── artist-1.jpg
-│   └── artist-2.jpg
-│
-└── playlists/
-    ├── playlist-1.jpg
-    └── playlist-2.jpg
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+})
 ```
 
-Database menyimpan URL atau informasi yang diperlukan untuk mengakses file tersebut.
+---
 
-# 13. Penanggung Jawab
+# 13. Penanggung Jawab & Status Implementation
 
-| Bagian             | Penanggung Jawab | Status |
-| ------------------ | ---------------- | ------ |
-| Rancangan database | Dimas            | Belum  |
-| Users              | Dimas            | Belum  |
-| Artists            | Dimas            | Belum  |
-| Albums             | Dimas            | Belum  |
-| Songs              | Dimas            | Belum  |
-| Playlists          | Dimas            | Belum  |
-| Playlist Songs     | Dimas            | Belum  |
-| Favorites          | Dimas            | Belum  |
-| Recently Played    | Dimas            | Belum  |
-| Supabase Auth      | Dimas            | Belum  |
-| Supabase Storage   | Dimas            | Belum  |
+| Bagian | Penanggung Jawab | Status |
+| ------ | ---------------- | ------ |
+| Rancangan Database Schema | Dimas | Selesai |
+| Tabel `profiles` & Types | Dimas | Selesai |
+| Tabel `artists` & Types | Dimas | Selesai |
+| Tabel `albums` & Types | Dimas | Selesai |
+| Tabel `songs` & Types | Dimas | Selesai |
+| Tabel `playlists` & Types | Dimas | Selesai |
+| Tabel `favorites` & Types | Dimas | Selesai |
+| Tabel `recently_played` & Types | Dimas | Selesai |
+| Supabase Auth Client Configuration | Dimas | Selesai |
+| Client Mount Verification (`App.tsx`) | Dimas + Rendra | Selesai |
 
-## Bantuan dari Anggota Lain
+---
 
-Rendra akan menggunakan data dari database untuk kebutuhan Front-End.
+# 14. Keamanan & Row Level Security (RLS)
 
-Contohnya:
-
-```text
-Dimas
-   ↓
-Menyediakan data lagu
-   ↓
-Rendra
-   ↓
-Menampilkan data pada website
-```
-
-Deva bertanggung jawab terhadap kebutuhan konfigurasi dan deployment yang berkaitan dengan project.
-
-# 14. Catatan Keamanan
-
-Data pengguna harus dikelola dengan aturan keamanan yang sesuai.
-
-Supabase Row Level Security (RLS) akan dipertimbangkan untuk membatasi akses data pengguna.
-
-Contohnya, data playlist dan favorit milik pengguna hanya boleh diakses sesuai dengan hak akses pengguna tersebut.
-
-# 15. Pengembangan Database
-
-Database akan dikembangkan secara bertahap.
-
-Tahapan awal:
-
-```text
-1. Membuat project Supabase
-2. Membuat tabel
-3. Membuat relasi
-4. Memasukkan data awal
-5. Mengatur keamanan
-6. Menghubungkan Supabase dengan Front-End
-7. Melakukan pengujian
-```
-
-Penanggung jawab utama bagian database adalah **Dimas sebagai Back-End**.
+* Data pengguna dilindungi dengan aturan Supabase Row Level Security (RLS).
+* Playlist dan Favorit milik pengguna hanya dapat dimodifikasi oleh pemilik akun yang sah.
+* Data `songs`, `artists`, dan `albums` berstatus read-only untuk publik.

@@ -6,8 +6,37 @@ import Sidebar from './components/Sidebar';
 import PlayerBar from './components/PlayerBar';
 import Profile from './components/Profile';
 import MobileNav from './components/MobileNav';
+import { supabase } from './lib/supabase';
 
 export default function App() {
+  /*
+   * ==========================================
+   * TEST KONEKSI SUPABASE (SEKALI JALAN MOUNT)
+   * ==========================================
+   */
+  useEffect(() => {
+    const testSupabaseConnection = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('songs')
+          .select('id')
+          .limit(1);
+
+        if (error) {
+          console.error('❌ Supabase GAGAL terhubung:', error.message);
+          console.log('💡 Tips Troubleshooting: Check VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY di file .env, atau pastikan RLS & tabel "songs" di Supabase sudah sesuai.');
+        } else {
+          console.log('✅ Supabase BERHASIL terhubung! Koneksi ke tabel "songs" sukses.', data);
+        }
+      } catch (err) {
+        console.error('❌ Supabase GAGAL terhubung (Unexpected Error):', err);
+        console.log('💡 Tips Troubleshooting: Pastikan URL Supabase valid dan koneksi internet stabil.');
+      }
+    };
+
+    testSupabaseConnection();
+  }, []);
+
   const [activeTab, setActiveTab] = useState('Home');
   const [showLyrics, setShowLyrics] = useState(false);
 

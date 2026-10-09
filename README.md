@@ -1,194 +1,147 @@
 # MeloSync
 
-MeloSync adalah website musik yang digunakan untuk mencari dan mendengarkan lagu secara online.
+MeloSync adalah web music player modern yang digunakan untuk mencari, mengelola, dan mendengarkan musik secara online dengan antarmuka yang imersif dan kaya fitur.
 
-Website ini menyediakan fitur pencarian lagu, pemutaran lagu, informasi artis dan album, playlist, lagu favorit, riwayat lagu, serta pengelompokan lagu berdasarkan mood dan aktivitas.
+Aplikasi ini menyediakan fitur pemutaran lagu, pencarian real-time, **lirik sinematik interaktif**, **latar belakang ambient glow dinamis**, mode layar penuh (*fullscreen*), pengelolaan playlist, daftar favorit, riwayat lagu, profil pengguna & pengaturan audio, serta pengelompokan lagu berdasarkan **mood dan aktivitas**.
+
+---
 
 ## Tujuan
 
-MeloSync dibuat untuk memudahkan pengguna dalam mencari dan mendengarkan lagu sesuai dengan kebutuhan dan suasana mereka.
+MeloSync dibuat untuk memberikan pengalaman mendengarkan musik yang lebih personal, visual, dan efisien. Pengguna dapat memilih lagu sesuai dengan suasana hati (*mood*) maupun kegiatan yang sedang dikerjakan tanpa membuang waktu mencari lagu secara manual.
 
-MeloSync memiliki konsep pengelompokan lagu berdasarkan mood dan aktivitas, seperti:
+Konsep mood dan aktivitas mencakup:
+- **Belajar**
+- **Santai**
+- **Olahraga**
+- **Tidur**
+- **Semangat**
+- **Fokus**
 
-- Belajar
-- Santai
-- Olahraga
-- Tidur
-- Semangat
-
-Dengan konsep tersebut, pengguna dapat lebih mudah menemukan lagu yang sesuai dengan suasana atau kegiatan yang sedang dilakukan.
+---
 
 ## Fitur Utama
 
-### Pengguna
+### Pengguna & Profil
+- Pengelolaan profil pengguna (Nama, Bio, Avatar, Lokasi, Membership Tier)
+- Modal *Edit Profile* interaktif & seleksi avatar
+- Pengaturan audio (Hi-Res Lossless, Equalizer, Crossfade)
 
-- Registrasi akun
-- Login dan logout
-- Pengelolaan profil pengguna
+### Musik & Pemutar (Music Player)
+- Pemutar musik interaktif (Play/Pause, Next/Prev, Progress Bar, Volume Control)
+- **Lirik Sinematik Interaktif** (*auto-scroll* & lompat waktu pemutaran)
+- **Dynamic Ambient Glow** (Warna background menyesuaikan lagu aktif)
+- Mode **Fullscreen** untuk tampilan tanpa gangguan
+- Pencarian lagu, artis, dan album secara real-time
 
-### Musik
+### Perpustakaan Musik
+- Pengelolaan playlist pengguna & sistem
+- Daftar lagu favorit (*Favorites*)
+- Pengelompokan album dan artis populer
+- Pencatatan riwayat lagu yang baru diputar (*Recently Played*)
 
-- Pencarian lagu
-- Pemutaran lagu
-- Informasi lagu
-- Informasi artis
-- Informasi album
+### Mood & Aktivitas
+- Penyaringan lagu berdasarkan kategori mood dan kegiatan
 
-### Playlist
+> Penjelasan detail mengenai seluruh fitur dapat dibaca pada [docs/fitur.md](file:///d:/Project-Github/melosync/docs/fitur.md).
 
-- Membuat playlist
-- Menambahkan lagu ke playlist
-- Menghapus lagu dari playlist
-- Melihat playlist pengguna
-
-### Favorit dan Riwayat
-
-- Menambahkan lagu ke favorit
-- Menghapus lagu dari favorit
-- Melihat daftar lagu favorit
-- Menyimpan riwayat lagu yang diputar
-- Melihat riwayat lagu
-
-### Mood dan Aktivitas
-
-Pengguna dapat menemukan lagu berdasarkan mood dan aktivitas, seperti:
-
-- Belajar
-- Santai
-- Olahraga
-- Tidur
-- Semangat
-
-Penjelasan fitur secara lengkap terdapat pada `docs/fitur.md`.
+---
 
 ## Teknologi
 
-MeloSync dikembangkan menggunakan:
+MeloSync dikembangkan menggunakan stack modern:
 
 ### Front-End
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- ESLint
+- **React (v18+)**
+- **TypeScript**
+- **Vite**
+- **Tailwind CSS**
+- **Lucide React** (Ikonografi Modern)
+- **ESLint**
 
-### Back-End dan Database
-- Supabase
-- PostgreSQL
-- Supabase Authentication
+### Back-End & Database
+- **Supabase** (Client Integration & Connection Verification)
+- **PostgreSQL Database** (Skema type-safe pada `src/lib/supabase.ts`)
+- **Supabase Authentication**
 
-### Deployment
-- Vercel
+### Deployment & Version Control
+- **Vercel**
+- **Git & GitHub**
 
-### Version Control
-- Git
-- GitHub
+---
 
 ## Tim Pengembang
 
-| **Nama** | **Role** | **Tanggung Jawab** |
-| -------- | -------- | ------------------ |
-| Deva | DevOps | Git, GitHub, branch, environment configuration, Vercel, deployment, dan pengelolaan versi project |
-| Rendra | Front-End | UI/UX website, implementasi antarmuka, responsive design, dan integrasi tampilan dengan data aplikasi |
-| Dimas | Back-End | Supabase, database PostgreSQL, authentication, struktur tabel, pengelolaan data, dan integrasi backend |
-| Faris | QA / Tester | Pengujian fitur, pencarian bug, pengecekan alur aplikasi, pengujian authentication, dan pelaporan bug |
+| Nama | Role | Tanggung Jawab Utama |
+| ---- | ---- | -------------------- |
+| **Deva** | DevOps | Git, GitHub, branch management, environment config, Vercel deployment |
+| **Rendra** | Front-End | UI/UX, React components, Music Player, Cinematic Lyrics, Responsive styling |
+| **Dimas** | Back-End | Supabase PostgreSQL, Authentication, Database TypeScript types & integration |
+| **Faris** | QA / Tester | Pengujian fitur, cross-browser/mobile testing, error handling & reporting |
+
+---
 
 ## Pembagian Tanggung Jawab
 
 ### Deva — DevOps
-
-- Mengelola repository GitHub
-- Mengatur branch `main` dan `develop`
-- Membuat dan mengatur branch fitur jika diperlukan
-- Mengatur workflow Git
-- Mengatur environment variables
-- Menghubungkan project dengan Vercel
-- Melakukan deployment ke Vercel
-- Memastikan project dapat diakses setelah deployment
-- Membantu menjaga kestabilan versi `main`
+- Mengelola repository GitHub MeloSync
+- Mengatur workflow branch `main` dan `develop`
+- Mengatur environment variables (`.env`)
+- Menghubungkan project dan deployment otomatis ke Vercel
+- Memastikan kestabilan rilis produk
 
 ### Rendra — Front-End
-
-- Membuat struktur halaman website
-- Membuat komponen UI
-- Membuat responsive design
-- Membuat halaman utama
-- Membuat halaman pencarian
-- Membuat halaman detail lagu
-- Membuat halaman artis dan album
-- Membuat music player
-- Membuat halaman playlist
-- Membuat halaman favorit
-- Membuat halaman riwayat
-- Membuat tampilan mood dan aktivitas
-- Mengintegrasikan UI dengan data dari Supabase
+- Membangun komponen UI (`Sidebar`, `PlayerBar`, `Profile`, `MobileNav`)
+- Mengembangkan tampilan **Lirik Sinematik** dan **Dynamic Ambient Glow**
+- Implementasi Music Player dan kontrol audio interaktif
+- Membangun tata letak responsif untuk perangkat mobile dan desktop
+- Mengintegrasikan antarmuka dengan state aplikasi
 
 ### Dimas — Back-End
-
-- Membuat dan mengelola project Supabase
-- Merancang database PostgreSQL
-- Membuat tabel dan relasi database
-- Mengatur Supabase Authentication
-- Mengelola data pengguna
-- Mengelola data lagu
-- Mengelola data artis dan album
-- Mengelola data playlist
-- Mengelola data favorit
-- Mengelola data riwayat
-- Mengelola data mood dan aktivitas
-- Mengatur Row Level Security (RLS)
-- Menyediakan integrasi data untuk kebutuhan Front-End
+- Merancang dan membuat skema database PostgreSQL Supabase
+- Menulis TypeScript Database Interface (`src/lib/supabase.ts`)
+- Menyiapkan penanganan error koneksi & pengujian otomatis pada mount aplikasi
+- Merancang aturan Row Level Security (RLS) & Auth Supabase
 
 ### Faris — QA / Tester
+- Pengujian fungsionalitas pemutar musik, pencarian, dan lirik interaktif
+- Pengujian antarmuka pada berbagai ukuran layar (*responsive testing*)
+- Pelaporan bug melalui GitHub Issues dan verifikasi perbaikan (*re-testing*)
+- Pengujian versi aplikasi yang sudah di-deploy pada Vercel
 
-- Menguji setiap fitur yang telah selesai
-- Menguji registrasi, login, dan logout
-- Menguji pencarian dan pemutaran lagu
-- Menguji playlist
-- Menguji favorit
-- Menguji riwayat
-- Menguji fitur mood dan aktivitas
-- Mengecek responsive interface
-- Mencari error dan bug
-- Membuat laporan bug melalui GitHub Issues
-- Melakukan retest setelah bug diperbaiki
-- Melakukan pengecekan pada versi yang sudah di-deploy di Vercel
+---
 
-## Dokumentasi
+## Dokumentasi Project
 
-Dokumentasi project terdapat pada folder `docs/`.
+Dokumentasi lengkap project MeloSync tersimpan di dalam folder `docs/`:
 
-- `docs/konsep.md` → konsep dan tujuan project
-- `docs/fitur.md` → daftar fitur dan penanggung jawab
-- `docs/pembagian-tugas.md` → pembagian tugas setiap anggota
-- `docs/database.md` → rancangan database
+- [docs/konsep.md](file:///d:/Project-Github/melosync/docs/konsep.md) → Konsep utama, keunikan, dan alur aplikasi
+- [docs/fitur.md](file:///d:/Project-Github/melosync/docs/fitur.md) → Daftar fitur lengkap, penanggung jawab, dan status
+- [docs/pembagian-tugas.md](file:///d:/Project-Github/melosync/docs/pembagian-tugas.md) → Pembagian tugas tim pengembang
+- [docs/database.md](file:///d:/Project-Github/melosync/docs/database.md) → Rancangan skema database & Supabase integration
+
+---
 
 ## Struktur Branch
 
-Project menggunakan dua branch utama:
+Project menggunakan workflow dua branch utama:
 
-- `main` → versi project yang sudah diperiksa dan stabil
-- `develop` → branch pengembangan dan pengecekan
-
-Jika diperlukan, branch fitur dapat dibuat untuk mengerjakan bagian tertentu.
-
-Contoh:
+- `main` → Versi produk teruji dan stabil (diterbitkan ke Vercel)
+- `develop` → Branch utama pengembangan dan integrasi fitur
 
 ```text
-feature/navbar
-feature/search
-feature/music-player
-feature/playlist
-feature/supabase
-feature/auth
+main
+ └── develop
+      ├── feature/navbar
+      ├── feature/search
+      ├── feature/music-player
+      ├── feature/lyrics
+      └── feature/supabase
 ```
 
-Setelah fitur selesai dan diperiksa, perubahan dapat digabungkan ke `develop`.
-
-Jika project sudah stabil, `develop` dapat digabungkan ke `main`.
+---
 
 ## Repository
 
-Repository MeloSync:
-
-https://github.com/depipipii/melosync
+Repository MeloSync:  
+[https://github.com/depipipii/melosync](https://github.com/depipipii/melosync)
