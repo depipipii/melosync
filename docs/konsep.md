@@ -2,192 +2,107 @@
 
 ## 1. Gambaran Umum
 
-MeloSync adalah website musik yang dibuat untuk membantu pengguna mencari dan mendengarkan lagu secara online.
+MeloSync adalah aplikasi pemutar musik modern berbasis web (*web-based music player*) yang dirancang untuk memberikan pengalaman mendengarkan lagu secara online yang intuitif, cepat, dan kaya fitur.
 
-Website ini menyediakan fitur dasar seperti pencarian lagu, pemutaran lagu, informasi artis dan album, playlist, lagu favorit, serta riwayat lagu.
+Selain menyediakan fungsi pemutar musik standar seperti pencarian, pembuatan playlist, dan daftar favorit, MeloSync memiliki keunikan utama yaitu **pengelompokan musik berdasarkan mood dan aktivitas** serta **tampilan lirik sinematik interaktif** dan **latar belakang ambient glow dinamis**.
 
-Selain fitur tersebut, MeloSync memiliki konsep pengelompokan lagu berdasarkan **mood dan aktivitas**.
-
-Konsep ini bertujuan untuk membantu pengguna menemukan lagu yang sesuai dengan suasana hati atau kegiatan yang sedang dilakukan.
+---
 
 ## 2. Latar Belakang
 
-Musik sering digunakan untuk menemani berbagai aktivitas sehari-hari.
+Musik merupakan bagian tak terpisahkan dari aktivitas sehari-hari—mulai dari belajar, bekerja, berolahraga, bersantai, hingga menemani tidur. Pengguna sering kali menghabiskan waktu mencari lagu yang pas dengan suasana hati (*mood*) atau kegiatan yang sedang dijalankan.
 
-Pengguna dapat mendengarkan musik ketika belajar, bekerja, berolahraga, bersantai, melakukan perjalanan, atau sebelum tidur.
+MeloSync hadir untuk mempermudah penemuan lagu melalui kategori yang sudah disesuaikan dengan kondisi pengguna, sehingga lagu yang tepat dapat diputar dengan cepat tanpa perlu pencarian manual yang membingungkan.
 
-Pengguna terkadang membutuhkan waktu untuk menentukan lagu yang sesuai dengan kondisi atau aktivitas mereka.
-
-MeloSync dibuat dengan konsep pengelompokan musik berdasarkan mood dan aktivitas agar pengguna dapat menemukan pilihan lagu dengan lebih mudah.
+---
 
 ## 3. Tujuan Project
 
-Tujuan pembuatan MeloSync adalah:
+Tujuan utama pengembangan MeloSync:
+1. Menyediakan aplikasi pemutar musik web yang cepat, responsif, dan estetik.
+2. Memudahkan pengguna menemukan lagu berdasarkan suasana hati (*mood*) dan kegiatan (*activity*).
+3. Menyediakan tampilan lirik sinematik tersinkronisasi (*interactive lyrics view*).
+4. Memberikan pengalaman visual yang imersif melalui *Dynamic Ambient Glow* dan *Fullscreen Mode*.
+5. Menyediakan manajemen perpustakaan musik pribadi (Playlist, Album, Artis, Favorit, dan Riwayat Putar).
+6. Mengintegrasikan aplikasi dengan database Supabase PostgreSQL.
 
-1. Membuat website musik yang mudah digunakan.
-2. Memudahkan pengguna mencari lagu.
-3. Memungkinkan pengguna mendengarkan lagu secara online.
-4. Menampilkan informasi lagu, artis, dan album.
-5. Memungkinkan pengguna membuat playlist.
-6. Menyediakan fitur lagu favorit.
-7. Menyimpan riwayat lagu yang diputar.
-8. Mengelompokkan lagu berdasarkan mood dan aktivitas.
+---
 
 ## 4. Target Pengguna
 
-MeloSync ditujukan untuk pengguna yang ingin:
+MeloSync ditujukan bagi pengguna yang ingin:
+* Mendengarkan musik secara streaming melalui peramban web.
+* Menemukan lagu berdasarkan suasana hati (Santai, Semangat, Fokus, Tidur, dll.).
+* Menemukan musik yang cocok untuk menemani aktivitas tertentu (Belajar, Bekerja, Olahraga, dll.).
+* Membaca dan bernyanyi dengan lirik lagu yang tersinkronisasi otomatis.
+* Mengelola playlist dan daftar lagu favorit secara rapi.
 
-* Mendengarkan musik secara online.
-* Mencari lagu tertentu.
-* Menemukan lagu berdasarkan mood.
-* Menemukan lagu berdasarkan aktivitas.
-* Membuat playlist sendiri.
-* Menyimpan lagu favorit.
+---
 
 ## 5. Konsep Utama
 
-Konsep utama MeloSync adalah **musik berdasarkan mood dan aktivitas**.
+### A. Musik Berdasarkan Mood & Aktivitas
+Pengguna dapat memilih kategori sesuai kondisi saat ini:
+* **Mood:** Santai, Semangat, Bahagia, Sedih, Fokus, Tidur.
+* **Aktivitas:** Belajar, Bekerja, Olahraga, Tidur, Perjalanan, Bersantai.
 
-### Mood
+### B. Lirik Sinematik (Cinematic Lyrics)
+Menampilkan lirik lagu dengan efek pencahayaan sinematik dan pergerakan lirik otomatis (*auto-scroll*). Pengguna juga dapat mengklik baris lirik mana saja untuk melompat langsung ke detik lagu tersebut.
 
-Contoh kategori mood:
+### C. Dynamic Ambient Glow Background
+Warna latar belakang aplikasi menyesuaikan secara otomatis dengan warna khas (*glowPrimary* & *glowSecondary*) lagu yang sedang diputar, menciptakan atmosfer audio-visual yang imersif.
 
-* Santai
-* Semangat
-* Bahagia
-* Sedih
-* Fokus
+---
 
-### Aktivitas
-
-Contoh kategori aktivitas:
-
-* Belajar
-* Bekerja
-* Olahraga
-* Tidur
-* Perjalanan
-* Bersantai
-
-Pengguna dapat memilih kategori yang sesuai dengan kondisi mereka untuk menemukan lagu yang berkaitan dengan kategori tersebut.
-
-## 6. Contoh Penggunaan
-
-Misalnya pengguna sedang belajar.
-
-Pengguna dapat membuka kategori:
+## 6. Alur Penggunaan
 
 ```text
-Aktivitas → Belajar
+Pengguna Membuka MeloSync
+         │
+         ├── Memilih Mood / Aktivitas di Beranda ──► Memutar Lagu
+         │
+         ├── Menggunakan Pencarian Real-Time ──────► Memutar / Menambah Favorit
+         │
+         ├── Membuka View Lirik Sinematik ────────► Bernyanyi & Navigasi Waktu Lirik
+         │
+         └── Membuka Perpustakaan / Profil ────────► Mengelola Playlist & Pengaturan Audio
 ```
 
-Kemudian MeloSync menampilkan lagu atau playlist yang sudah dikelompokkan untuk aktivitas belajar.
+---
 
-Contoh lainnya:
+## 7. Teknologi yang Digunakan
+
+| Teknologi | Peran & Penggunaan |
+| --------- | ------------------ |
+| **React (v18+)** | Framework utama pembangun antarmuka pengguna berbasis komponen |
+| **TypeScript** | Menjamin keamanan tipe data (*type safety*) pada seluruh aplikasi & database model |
+| **Vite** | Build tool modern untuk proses *development* dan pemaketan produksi yang cepat |
+| **Tailwind CSS** | Framework CSS utility-first untuk desain responsif, animasi, dan efek glassmorphism |
+| **Lucide React** | Ikon vektor modern untuk antarmuka pengguna |
+| **Supabase** | Backend-as-a-Service (PostgreSQL database, Auth, & Client integration) |
+| **Vercel** | Platform cloud hosting untuk deployment dan pratinjau |
+| **Git & GitHub** | Version control dan kolaborasi tim |
+
+---
+
+## 8. Tim Pengembang & Peran
+
+| Nama | Role | Fokus Tanggung Jawab |
+| ---- | ---- | -------------------- |
+| **Deva** | DevOps | Git workflow, branch management, environment config, Vercel deployment |
+| **Rendra** | Front-End | UI/UX React components, Music Player, Cinematic Lyrics, Ambient Glow, Styling |
+| **Dimas** | Back-End | Supabase PostgreSQL setup, Database Types TypeScript, Auth, Data Relations |
+| **Faris** | QA / Tester | Testing fitur, pengujian antarmuka responsif, verifikasi perbaikan bug, QA build |
+
+---
+
+## 9. Struktur Branch & Workflow Git
+
+Aplikasi dikembangkan menggunakan struktur branch terstandar:
 
 ```text
-Mood → Santai
+main           (versi stabil terverifikasi)
+ └── develop   (branch integrasi pengembangan)
 ```
 
-MeloSync kemudian menampilkan lagu yang termasuk dalam kategori santai.
-
-## 7. Alur Penggunaan
-
-Secara umum:
-
-```text
-Pengguna
-   ↓
-Membuka MeloSync
-   ↓
-Melihat Beranda
-   ↓
-Mencari Lagu / Memilih Mood / Aktivitas
-   ↓
-Memilih Lagu
-   ↓
-Memutar Lagu
-   ↓
-Menambahkan ke Favorit / Playlist
-```
-
-## 8. Teknologi
-
-| Teknologi    | Penggunaan                         |
-| ------------ | ---------------------------------- |
-| React        | Membuat antarmuka website          |
-| TypeScript   | Menulis kode dengan tipe data      |
-| Vite         | Menjalankan dan membangun project  |
-| ESLint       | Memeriksa kualitas kode            |
-| Tailwind CSS | Membuat tampilan website           |
-| Supabase     | Database, autentikasi, dan storage |
-| Vercel       | Deployment website                 |
-| Git          | Version control                    |
-| GitHub       | Repository dan kolaborasi          |
-
-## 9. Pembagian Role
-
-### Deva — DevOps
-
-Bertanggung jawab terhadap:
-
-* Git dan GitHub
-* Pengelolaan branch
-* Workflow pengembangan
-* Konfigurasi project
-* Deployment ke Vercel
-* Menjaga project agar siap untuk proses deployment
-
-### Rendra — Front-End
-
-Bertanggung jawab terhadap:
-
-* Tampilan website
-* Komponen React
-* Halaman website
-* Tailwind CSS
-* Navigasi
-* Music Player pada sisi antarmuka
-* Integrasi tampilan dengan data dari Back-End
-
-### Dimas — Back-End
-
-Bertanggung jawab terhadap:
-
-* Supabase
-* Database
-* Struktur tabel
-* Autentikasi
-* Penyimpanan data
-* Supabase Storage
-* Integrasi data dengan Front-End
-
-## 10. Keunikan MeloSync
-
-Keunikan utama MeloSync adalah pengelompokan musik berdasarkan mood dan aktivitas.
-
-MeloSync tidak hanya berfokus pada pencarian lagu, tetapi juga membantu pengguna menemukan musik berdasarkan kebutuhan mereka.
-
-Contohnya:
-
-> Pengguna sedang belajar → memilih kategori **Belajar** → MeloSync menampilkan lagu yang sesuai.
-
-## 11. Pengembangan
-
-Project dikembangkan menggunakan Git dengan branch utama:
-
-```text
-main
-│
-└── develop
-     │
-     ├── feature/navbar
-     ├── feature/search
-     ├── feature/music-player
-     ├── feature/playlist
-     └── feature/supabase
-```
-
-`develop` digunakan untuk proses pengembangan dan pengecekan.
-
-`main` digunakan untuk versi yang sudah stabil.
+Setiap fitur dikembangkan, diuji melalui `npm run build`, dan diverifikasi sebelum digabungkan ke `main` untuk deployment otomatis di Vercel.
