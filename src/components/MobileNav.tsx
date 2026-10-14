@@ -1,12 +1,20 @@
-import { Home, Compass, Library, Heart, User } from 'lucide-react';
+import { Home, Compass, Library, User } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface MobileNavProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   showLyrics: boolean;
   setShowLyrics: (show: boolean) => void;
-  favoritesCount: number;
   session: any;
+}
+
+interface NavItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: number;
+  isGuest?: boolean;
 }
 
 export default function MobileNav({
@@ -14,14 +22,12 @@ export default function MobileNav({
   setActiveTab,
   showLyrics,
   setShowLyrics,
-  favoritesCount,
   session
 }: MobileNavProps) {
-  const navItems = [
+  const navItems: NavItem[] = [
     { id: 'Home', label: 'Home', icon: Home },
     { id: 'Discover', label: 'Discover', icon: Compass },
     { id: 'Library', label: 'Library', icon: Library },
-    { id: 'Favorites', label: 'Favorites', icon: Heart, badge: favoritesCount > 0 ? favoritesCount : undefined },
     { id: 'Profile', label: 'Profile', icon: User, isGuest: !session },
   ];
 

@@ -1,4 +1,4 @@
-import { Home, Compass, Library, Disc3, Heart, User } from 'lucide-react';
+import { Home, Compass, Library, Disc3, User } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -32,7 +32,6 @@ export default function Sidebar({ activeTab, setActiveTab, showLyrics, setShowLy
           { id: 'Home', icon: Home },
           { id: 'Discover', icon: Compass },
           { id: 'Library', icon: Library },
-          { id: 'Favorites', icon: Heart },
           { id: 'Profile', icon: User },
         ].map((item) => {
           const isActive = activeTab === item.id && !showLyrics;

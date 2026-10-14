@@ -87,8 +87,18 @@ export default function App() {
   const [repeatMode, setRepeatMode] = useState<'none' | 'one' | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
-  const [libraryTab, setLibraryTab] = useState<'Playlists' | 'Albums' | 'Artists'>('Playlists');
+  const [libraryTab, setLibraryTab] = useState<'Favorites' | 'Playlists' | 'Albums' | 'Artists'>('Favorites');
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const handleTabChange = useCallback((tab: string) => {
+    if (tab === 'Favorites') {
+      setActiveTab('Library');
+      setLibraryTab('Favorites');
+    } else {
+      setActiveTab(tab);
+    }
+    setShowLyrics(false);
+  }, []);
 
   // User-created playlists (persisted to Supabase / localStorage)
   const [userPlaylists, setUserPlaylists] = useState<PlaylistRecord[]>(() => {
@@ -491,7 +501,7 @@ export default function App() {
       {/* Sidebar Component */}
       <Sidebar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         showLyrics={showLyrics}
         setShowLyrics={setShowLyrics}
         session={session}
@@ -679,7 +689,7 @@ export default function App() {
                               }
                               setShowAddToPlaylistModal(track.id);
                             }}
-                            title="Tambahkan ke Playlist"
+                            aria-label="Tambahkan ke Playlist"
                           />
                         </div>
                       </div>
@@ -744,104 +754,21 @@ export default function App() {
                 </div>
               </div>
             </div>
-          ) : activeTab === 'Favorites' ? (
-            <div className="animate-in fade-in duration-700">
-              <h2 className="text-xl sm:text-2xl font-light text-slate-900 dark:text-white mb-6">Your Favorite Tracks</h2>
-              <section className="bg-white/40 dark:bg-slate-900/30 border border-slate-200 dark:border-white/5 rounded-2xl sm:rounded-[2rem] p-3 sm:p-4 md:p-6 backdrop-blur-xl shadow-2xl transition-colors duration-500">
-                <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_1fr_auto] gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-200 dark:border-white/5 text-[10px] uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 font-bold mb-2">
-                  <div className="w-7 sm:w-8 text-center">#</div>
-                  <div>Title</div>
-                  <div className="hidden sm:block">Album</div>
-                  <div className="pr-2 sm:pr-4"><Clock className="w-4 h-4" /></div>
-                </div>
-
-                <div className="space-y-1">
-                  {TRACKS.filter(t => favorites.includes(t.id) && (
-                    t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    t.artist.toLowerCase().includes(searchQuery.toLowerCase())
-                  )).map((track, idx) => {
-                    const isCurrent = currentTrack.id === track.id;
-                    return (
-                      <div
-                        key={track.id}
-                        onClick={() => handleTrackSelect(track)}
-                        className={`grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_1fr_auto] gap-3 sm:gap-4 items-center px-3 sm:px-4 py-2 sm:py-3 rounded-2xl transition-all duration-300 cursor-pointer group ${isCurrent ? 'bg-violet-600/10 dark:bg-white/10 shadow-[0_4px_15px_rgba(124,58,237,0.1)] dark:shadow-[0_4px_15px_rgba(0,0,0,0.2)] border border-violet-200 dark:border-white/5' : 'hover:bg-slate-200/50 dark:hover:bg-white/5'
-                          }`}
-                      >
-                        <div className="w-8 flex justify-center items-center">
-                          {isCurrent && isPlaying ? (
-                            <div className="flex items-end justify-center gap-[3px] h-4 w-4">
-                              <div className="w-1 bg-violet-600 dark:bg-violet-400 rounded-full animate-eq-1"></div>
-                              <div className="w-1 bg-slate-900 dark:bg-white rounded-full animate-eq-2"></div>
-                              <div className="w-1 bg-rose-500 dark:bg-rose-400 rounded-full animate-eq-3"></div>
-                            </div>
-                          ) : (
-                            <span className={`text-sm font-medium ${isCurrent ? 'text-violet-600 dark:text-violet-300' : 'text-slate-400 dark:text-slate-600 group-hover:text-slate-900 dark:group-hover:text-slate-400'}`}>
-                              {String(idx + 1).padStart(2, '0')}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-md border border-slate-200 dark:border-transparent">
-                            <img src={track.cover} alt={track.title} className="w-full h-full object-cover" />
-                            <div
-                              onClick={(e) => { e.stopPropagation(); handleTrackSelect(track); }}
-                              className={`absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px] ${isCurrent && isPlaying ? 'opacity-0' : ''}`}
-                            >
-                              <Play className="w-5 h-5 text-white fill-current ml-0.5" />
-                            </div>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className={`text-base font-medium transition-colors ${isCurrent ? 'text-violet-600 dark:text-white' : 'text-slate-900 dark:text-slate-300'}`}>
-                              {track.title}
-                            </span>
-                            <span className="text-sm text-slate-500 dark:text-slate-500">{track.artist}</span>
-                          </div>
-                        </div>
-
-                        <div className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block truncate pr-4">
-                          {track.album}
-                        </div>
-
-                        <div className="flex items-center gap-4 sm:gap-6">
-                          <Heart
-                            className={`w-4 h-4 cursor-pointer transition-all ${favorites.includes(track.id) ? 'text-rose-500 fill-current opacity-100' : 'text-slate-300 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-rose-500'}`}
-                            onClick={(e) => { e.stopPropagation(); toggleFavorite(track.id); }}
-                          />
-                          <span className="text-sm text-slate-500 dark:text-slate-500 w-10 sm:w-12 text-right font-medium">{formatTime(track.duration)}</span>
-                          <MoreHorizontal
-                            className="w-5 h-5 text-slate-400 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-slate-900 dark:hover:text-white transition-all hidden sm:block cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!session) {
-                                requireAuth('Login untuk menambahkan lagu ke playlist.');
-                                return;
-                              }
-                              setShowAddToPlaylistModal(track.id);
-                            }}
-                            title="Tambahkan ke Playlist"
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {favorites.length === 0 && (
-                    <div className="text-center py-20 text-slate-500">No favorite tracks yet.</div>
-                  )}
-                </div>
-              </section>
-            </div>
           ) : activeTab === 'Profile' ? (
             session ? (
               <Profile
                 favorites={favorites}
                 handleTrackSelect={handleTrackSelect}
                 toggleFavorite={toggleFavorite}
-                setActiveTab={setActiveTab}
+                setActiveTab={handleTabChange}
                 formatTime={formatTime}
                 session={session as any}
                 userPlaylists={userPlaylists}
+                onOpenFavoritesInLibrary={() => {
+                  setActiveTab('Library');
+                  setLibraryTab('Favorites');
+                  setShowLyrics(false);
+                }}
               />
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in duration-700">
@@ -865,7 +792,7 @@ export default function App() {
               {/* Tab header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-6 border-b border-slate-200 dark:border-white/10 pb-4 overflow-x-auto scrollbar-hide whitespace-nowrap flex-1">
-                  {(['Playlists', 'Albums', 'Artists'] as const).map((tab) => {
+                  {(['Favorites', 'Playlists', 'Albums', 'Artists'] as const).map((tab) => {
                     const isActive = libraryTab === tab;
                     return (
                       <button
@@ -882,8 +809,12 @@ export default function App() {
                       >
                         {tab}
                         <span className="ml-1.5 text-[10px] bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full">
-                          {tab === 'Playlists' ? userPlaylists.length
-                            : tab === 'Albums' ? likedAlbums.length
+                          {tab === 'Favorites'
+                            ? favorites.length
+                            : tab === 'Playlists'
+                            ? userPlaylists.length
+                            : tab === 'Albums'
+                            ? likedAlbums.length
                             : likedArtists.length}
                         </span>
                       </button>
@@ -905,6 +836,106 @@ export default function App() {
                   </button>
                 )}
               </div>
+
+              {/* === FAVORITES === */}
+              {libraryTab === 'Favorites' && (
+                <div className="animate-in fade-in duration-300">
+                  {favorites.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+                      <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-xl">
+                        <Heart className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-800 dark:text-white text-lg">Belum ada lagu disukai</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Sukai lagu untuk melihatnya di sini.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {(() => {
+                        const favTracks = TRACKS.filter(t => favorites.includes(t.id) && (
+                          t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          t.artist.toLowerCase().includes(searchQuery.toLowerCase())
+                        ));
+
+                        if (favTracks.length === 0) {
+                          return (
+                            <div className="text-center py-16 text-slate-500 text-sm">
+                              Tidak ada lagu yang cocok dengan pencarian "{searchQuery}".
+                            </div>
+                          );
+                        }
+
+                        return favTracks.map((track, idx) => {
+                          const isCurrent = currentTrack.id === track.id;
+                          return (
+                            <div
+                              key={track.id}
+                              onClick={() => handleTrackSelect(track)}
+                              className={`grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_1fr_auto] gap-3 sm:gap-4 items-center px-3 sm:px-4 py-2 sm:py-3 rounded-2xl transition-all duration-300 cursor-pointer group ${
+                                isCurrent ? 'bg-violet-600/10 dark:bg-white/10 border border-violet-200 dark:border-white/5' : 'hover:bg-slate-200/50 dark:hover:bg-white/5'
+                              }`}
+                            >
+                              <div className="w-8 flex justify-center items-center">
+                                {isCurrent && isPlaying ? (
+                                  <div className="flex items-end justify-center gap-[3px] h-4 w-4">
+                                    <div className="w-1 bg-violet-600 dark:bg-violet-400 rounded-full animate-eq-1"></div>
+                                    <div className="w-1 bg-slate-900 dark:bg-white rounded-full animate-eq-2"></div>
+                                    <div className="w-1 bg-rose-500 dark:bg-rose-400 rounded-full animate-eq-3"></div>
+                                  </div>
+                                ) : (
+                                  <span className={`text-sm font-medium ${isCurrent ? 'text-violet-600 dark:text-violet-300' : 'text-slate-400 dark:text-slate-600 group-hover:text-slate-900 dark:group-hover:text-slate-400'}`}>
+                                    {String(idx + 1).padStart(2, '0')}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-4 min-w-0">
+                                <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-md">
+                                  <img src={track.cover} alt={track.title} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex flex-col min-w-0">
+                                  <span className={`text-base font-medium truncate transition-colors ${isCurrent ? 'text-violet-600 dark:text-white' : 'text-slate-900 dark:text-slate-300'}`}>
+                                    {track.title}
+                                  </span>
+                                  <span className="text-sm text-slate-500 truncate">{track.artist}</span>
+                                </div>
+                              </div>
+
+                              <div className="text-sm text-slate-500 dark:text-slate-400 hidden sm:block truncate pr-4">
+                                {track.album}
+                              </div>
+
+                              <div className="flex items-center gap-4 sm:gap-6">
+                                <Heart
+                                  className="w-4 h-4 cursor-pointer text-rose-500 fill-current hover:scale-110 transition-transform"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleFavorite(track.id);
+                                  }}
+                                />
+                                <span className="text-sm text-slate-500 w-10 sm:w-12 text-right font-medium">{formatTime(track.duration)}</span>
+                                <MoreHorizontal
+                                  className="w-5 h-5 text-slate-400 dark:text-slate-600 opacity-0 group-hover:opacity-100 hover:text-slate-900 dark:hover:text-white transition-all hidden sm:block cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!session) {
+                                      requireAuth('Login untuk menambahkan lagu ke playlist.');
+                                      return;
+                                    }
+                                    setShowAddToPlaylistModal(track.id);
+                                  }}
+                                  aria-label="Tambahkan ke Playlist"
+                                />
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* === PLAYLISTS === */}
               {libraryTab === 'Playlists' && (
@@ -1180,127 +1211,127 @@ export default function App() {
                   )}
                 </div>
               )}
+            </div>
+          )}
 
-              {/* === MODAL BUAT PLAYLIST === */}
-              {showCreatePlaylist && (
-                <div
-                  className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
-                  onClick={() => setShowCreatePlaylist(false)}
+          {/* === MODAL BUAT PLAYLIST === */}
+          {showCreatePlaylist && (
+            <div
+              className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+              onClick={() => setShowCreatePlaylist(false)}
+            >
+              <div
+                className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl p-7 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-2 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Buat Playlist Baru</h3>
+                  <button onClick={() => setShowCreatePlaylist(false)} className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  autoFocus
+                  value={newPlaylistName}
+                  onChange={(e) => setNewPlaylistName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreatePlaylist()}
+                  placeholder="Nama playlist..."
+                  className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-3 px-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all mb-4"
+                />
+                <button
+                  onClick={handleCreatePlaylist}
+                  disabled={!newPlaylistName.trim() || isCreatingPlaylist}
+                  className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-violet-900/20 cursor-pointer"
                 >
-                  <div
-                    className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl p-7 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-2 duration-200"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center justify-between mb-5">
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">Buat Playlist Baru</h3>
-                      <button onClick={() => setShowCreatePlaylist(false)} className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      autoFocus
-                      value={newPlaylistName}
-                      onChange={(e) => setNewPlaylistName(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleCreatePlaylist()}
-                      placeholder="Nama playlist..."
-                      className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-3 px-4 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all mb-4"
-                    />
-                    <button
-                      onClick={handleCreatePlaylist}
-                      disabled={!newPlaylistName.trim() || isCreatingPlaylist}
-                      className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-violet-900/20 cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4" /> {isCreatingPlaylist ? 'Menyimpan...' : 'Buat Playlist'}
-                    </button>
-                  </div>
-                </div>
-              )}
+                  <Plus className="w-4 h-4" /> {isCreatingPlaylist ? 'Menyimpan...' : 'Buat Playlist'}
+                </button>
+              </div>
+            </div>
+          )}
 
-              {/* === MODAL TAMBAHKAN KE PLAYLIST === */}
-              {showAddToPlaylistModal !== null && (
-                <div
-                  className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
-                  onClick={() => setShowAddToPlaylistModal(null)}
+          {/* === MODAL TAMBAHKAN KE PLAYLIST === */}
+          {showAddToPlaylistModal !== null && (
+            <div
+              className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+              onClick={() => setShowAddToPlaylistModal(null)}
+            >
+              <div
+                className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">Tambahkan ke Playlist</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Pilih playlist untuk menyimpan lagu
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowAddToPlaylistModal(null)}
+                    className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="max-h-60 overflow-y-auto space-y-2 mb-4 pr-1">
+                  {userPlaylists.length === 0 ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
+                      Kamu belum memiliki playlist.
+                    </p>
+                  ) : (
+                    userPlaylists.map(pl => {
+                      const currentIds = pl.trackIds || pl.track_ids || [];
+                      const isAdded = currentIds.includes(showAddToPlaylistModal!);
+                      return (
+                        <button
+                          key={pl.id}
+                          onClick={() => handleToggleTrackInPlaylist(pl.id, showAddToPlaylistModal!)}
+                          className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                            isAdded
+                              ? 'bg-violet-600/10 border-violet-500/40 text-violet-700 dark:text-violet-300'
+                              : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-slate-200/50 dark:hover:bg-white/10 text-slate-900 dark:text-white'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                              <Music2 className="w-4 h-4 text-violet-500" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold truncate">{pl.name}</p>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                {currentIds.length} lagu
+                              </p>
+                            </div>
+                          </div>
+                          {isAdded && (
+                            <Check className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+
+                <button
+                  onClick={() => {
+                    setShowAddToPlaylistModal(null);
+                    setShowCreatePlaylist(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-violet-500/40 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 text-xs font-semibold transition-all cursor-pointer"
                 >
-                  <div
-                    className="w-full max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white">Tambahkan ke Playlist</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                          Pilih playlist untuk menyimpan lagu
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => setShowAddToPlaylistModal(null)}
-                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
+                  <Plus className="w-3.5 h-3.5" /> Buat Playlist Baru
+                </button>
+              </div>
+            </div>
+          )}
 
-                    <div className="max-h-60 overflow-y-auto space-y-2 mb-4 pr-1">
-                      {userPlaylists.length === 0 ? (
-                        <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
-                          Kamu belum memiliki playlist.
-                        </p>
-                      ) : (
-                        userPlaylists.map(pl => {
-                          const currentIds = pl.trackIds || pl.track_ids || [];
-                          const isAdded = currentIds.includes(showAddToPlaylistModal!);
-                          return (
-                            <button
-                              key={pl.id}
-                              onClick={() => handleToggleTrackInPlaylist(pl.id, showAddToPlaylistModal!)}
-                              className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                                isAdded
-                                  ? 'bg-violet-600/10 border-violet-500/40 text-violet-700 dark:text-violet-300'
-                                  : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-slate-200/50 dark:hover:bg-white/10 text-slate-900 dark:text-white'
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center">
-                                  <Music2 className="w-4 h-4 text-violet-500" />
-                                </div>
-                                <div>
-                                  <p className="text-sm font-semibold truncate">{pl.name}</p>
-                                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                    {currentIds.length} lagu
-                                  </p>
-                                </div>
-                              </div>
-                              {isAdded && (
-                                <Check className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-                              )}
-                            </button>
-                          );
-                        })
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setShowAddToPlaylistModal(null);
-                        setShowCreatePlaylist(true);
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-violet-500/40 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 text-xs font-semibold transition-all cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" /> Buat Playlist Baru
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Toast Notification */}
-              {playlistToast && (
-                <div className="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-[250] bg-slate-900/90 dark:bg-slate-800/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-white/10 text-sm font-medium animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span>{playlistToast}</span>
-                </div>
-              )}
+          {/* Toast Notification */}
+          {playlistToast && (
+            <div className="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-[250] bg-slate-900/90 dark:bg-slate-800/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-white/10 text-sm font-medium animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-400" />
+              <span>{playlistToast}</span>
             </div>
           )}
         </div>
@@ -1339,10 +1370,9 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar */}
       <MobileNav
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         showLyrics={showLyrics}
         setShowLyrics={setShowLyrics}
-        favoritesCount={favorites.length}
         session={session}
       />
 

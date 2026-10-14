@@ -28,6 +28,7 @@ interface ProfileProps {
   formatTime: (seconds: number) => string;
   session: Session;
   userPlaylists?: { id: string | number; name: string; trackIds?: number[]; track_ids?: number[]; createdAt?: string }[];
+  onOpenFavoritesInLibrary?: () => void;
 }
 
 export default function Profile({
@@ -37,7 +38,8 @@ export default function Profile({
   setActiveTab,
   formatTime,
   session,
-  userPlaylists
+  userPlaylists,
+  onOpenFavoritesInLibrary
 }: ProfileProps) {
   const [profileTab, setProfileTab] = useState<'Overview' | 'Saved Music' | 'Audio & Settings'>('Overview');
   const [loading, setLoading] = useState(true);
@@ -400,8 +402,14 @@ export default function Profile({
                 Top Favorites
               </h3>
               <button 
-                onClick={() => setActiveTab('Favorites')}
-                className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 font-medium transition-colors"
+                onClick={() => {
+                  if (onOpenFavoritesInLibrary) {
+                    onOpenFavoritesInLibrary();
+                  } else {
+                    setActiveTab('Library');
+                  }
+                }}
+                className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-500 dark:hover:text-violet-300 font-medium transition-colors cursor-pointer"
               >
                 View all ({favorites.length})
               </button>
