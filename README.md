@@ -41,7 +41,13 @@ Konsep mood dan aktivitas mencakup:
 - Pencatatan riwayat lagu yang baru diputar (*Recently Played*)
 
 ### Mood & Aktivitas
-- Penyaringan lagu berdasarkan kategori mood dan kegiatan
+- Penyaringan lagu berdasarkan kategori mood dan kegiatan harian
+- **📚 Belajar** — musik instrumental & ambient untuk konsentrasi belajar
+- **😌 Santai** — alunan downtempo & lo-fi untuk bersantai
+- **🏋️ Olahraga** — beat energik & upbeat untuk sesi latihan
+- **😴 Tidur** — musik lembut & tenang untuk membantu tidur
+- **💪 Semangat** — lagu motivasi & hype untuk meningkatkan energi
+- **🎯 Fokus** — musik minim distraksi untuk kerja dan produktivitas
 
 > Penjelasan detail mengenai seluruh fitur dapat dibaca pada [docs/fitur.md](file:///d:/Project-Github/melosync/docs/fitur.md).
 

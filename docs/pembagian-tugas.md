@@ -150,4 +150,5 @@ Dokumentasi selalu diperbarui setiap kali terjadi perubahan fitur atau struktur 
 - `docs/fitur.md` — Daftar & status fitur terbaru
 - `docs/database.md` — Skema database & Supabase TypeScript types
 - `docs/pembagian-tugas.md` — Pembagian tugas tim & tanggung jawab
+- `docs/qa-testing.md` — Laporan pengujian kualitas (QA report) & temuan bug
 - `README.md` — Ringkasan utama project MeloSync

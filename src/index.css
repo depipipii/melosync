@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4: Enable class-based dark mode via .dark on html */
+@custom-variant dark (&:where(.dark, .dark *));
+
 html,
 body,
 #root {
@@ -7,9 +10,20 @@ body,
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  background-color: #020617;
-  color: #e2e8f0;
   overflow-x: hidden;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Light mode defaults */
+html {
+  background-color: #f8fafc; /* slate-50 */
+  color: #1e293b; /* slate-800 */
+}
+
+/* Dark mode */
+html.dark {
+  background-color: #020617; /* slate-950 */
+  color: #e2e8f0; /* slate-200 */
 }
 
 #root {

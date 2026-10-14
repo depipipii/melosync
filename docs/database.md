@@ -135,6 +135,32 @@ Menyimpan data playlist buatan pengguna maupun sistem.
 | `created_at` | TIMESTAMP | Waktu playlist dibuat |
 | `updated_at` | TIMESTAMP | Waktu playlist diperbarui |
 
+### Script SQL Supabase (`playlists`):
+```sql
+CREATE TABLE IF NOT EXISTS public.playlists (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  owner_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  cover_url TEXT DEFAULT '',
+  track_ids INTEGER[] DEFAULT '{}',
+  is_public BOOLEAN DEFAULT false,
+  is_system BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Row Level Security (RLS)
+ALTER TABLE public.playlists ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage own playlists"
+  ON public.playlists
+  FOR ALL
+  USING (auth.uid() = user_id OR auth.uid() = owner_user_id)
+  WITH CHECK (auth.uid() = user_id OR auth.uid() = owner_user_id);
+```
+
 ---
 
 # 8. Tabel `playlist_songs`

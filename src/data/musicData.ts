@@ -1,4 +1,15 @@
-export const MOODS = ['All', 'Focus', 'Chill', 'Upbeat', 'Late Night'];
+export const MOODS = ['All', 'Belajar', 'Santai', 'Olahraga', 'Tidur', 'Semangat', 'Fokus'];
+
+// Pemetaan mood → genre yang terasosiasi
+export const MOOD_GENRES: Record<string, string[]> = {
+  'All':        [],
+  'Belajar':    ['Indie', 'Jazz', 'Instrumental'],
+  'Santai':     ['R&B', 'Jazz', 'Indie', 'Pop'],
+  'Olahraga':   ['Hip-Hop / Rap', 'Rock', 'EDM'],
+  'Tidur':      ['Jazz', 'Instrumental', 'Indie'],
+  'Semangat':   ['Hip-Hop / Rap', 'EDM', 'Pop', 'K-Pop', 'Latin'],
+  'Fokus':      ['Indie', 'Jazz', 'Instrumental', 'Rock'],
+};
 
 export const TRACKS = [
   {
@@ -7,7 +18,8 @@ export const TRACKS = [
     artist: "Elegy",
     album: "Echoes",
     duration: 180,
-    mood: "Focus",
+    mood: "Fokus",
+    genre: "Indie",
     glowPrimary: "bg-violet-600/40",
     glowSecondary: "bg-fuchsia-600/30",
     cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80",
@@ -29,7 +41,8 @@ export const TRACKS = [
     artist: "The Ethereal",
     album: "Midnight",
     duration: 210,
-    mood: "Chill",
+    mood: "Santai",
+    genre: "R&B",
     glowPrimary: "bg-blue-600/40",
     glowSecondary: "bg-indigo-600/30",
     cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80",
@@ -48,7 +61,8 @@ export const TRACKS = [
     artist: "CyberSynth",
     album: "Grid",
     duration: 195,
-    mood: "Upbeat",
+    mood: "Semangat",
+    genre: "EDM",
     glowPrimary: "bg-emerald-500/40",
     glowSecondary: "bg-teal-500/30",
     cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=300&q=80",
@@ -66,7 +80,8 @@ export const TRACKS = [
     artist: "Aura",
     album: "Horizons",
     duration: 240,
-    mood: "Late Night",
+    mood: "Tidur",
+    genre: "Jazz",
     glowPrimary: "bg-rose-600/40",
     glowSecondary: "bg-orange-600/30",
     cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=300&q=80",
@@ -80,12 +95,16 @@ export const TRACKS = [
 ];
 
 export const GENRES = [
-  { id: 1, name: "Lo-Fi Beats", gradient: "from-amber-500 to-orange-600", image: "https://images.unsplash.com/photo-1516280440502-61f00a98f5b4?auto=format&fit=crop&w=150&q=80" },
-  { id: 2, name: "Cyberpunk", gradient: "from-fuchsia-600 to-purple-800", image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=150&q=80" },
-  { id: 3, name: "Deep Focus", gradient: "from-blue-500 to-cyan-600", image: "https://images.unsplash.com/photo-1493225457224-eda0e6fd1463?auto=format&fit=crop&w=150&q=80" },
-  { id: 4, name: "Midnight Jazz", gradient: "from-slate-700 to-slate-900", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=150&q=80" },
-  { id: 5, name: "Indie Pop", gradient: "from-rose-400 to-pink-600", image: "https://images.unsplash.com/photo-1557672172-298e090bd0f1?auto=format&fit=crop&w=150&q=80" },
-  { id: 6, name: "Acoustic Chill", gradient: "from-emerald-500 to-teal-700", image: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=150&q=80" }
+  { id: 1,  name: "Pop",         gradient: "from-pink-500 to-rose-600",     image: "https://images.unsplash.com/photo-1493225457224-eda0e6fd1463?auto=format&fit=crop&w=150&q=80" },
+  { id: 2,  name: "Hip-Hop / Rap", gradient: "from-orange-500 to-amber-700", image: "https://images.unsplash.com/photo-1547355253-ff0740f859b4?auto=format&fit=crop&w=150&q=80" },
+  { id: 3,  name: "R&B",         gradient: "from-purple-600 to-violet-800", image: "https://images.unsplash.com/photo-1516280440502-61f00a98f5b4?auto=format&fit=crop&w=150&q=80" },
+  { id: 4,  name: "Rock",        gradient: "from-red-600 to-stone-800",     image: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?auto=format&fit=crop&w=150&q=80" },
+  { id: 5,  name: "EDM",         gradient: "from-cyan-400 to-blue-600",     image: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=150&q=80" },
+  { id: 6,  name: "Indie",       gradient: "from-emerald-400 to-teal-600",  image: "https://images.unsplash.com/photo-1557672172-298e090bd0f1?auto=format&fit=crop&w=150&q=80" },
+  { id: 7,  name: "K-Pop",       gradient: "from-fuchsia-500 to-pink-700",  image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" },
+  { id: 8,  name: "Latin",       gradient: "from-yellow-500 to-orange-600", image: "https://images.unsplash.com/photo-1504898770365-14faca6a7320?auto=format&fit=crop&w=150&q=80" },
+  { id: 9,  name: "Jazz",        gradient: "from-slate-600 to-zinc-800",    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=150&q=80" },
+  { id: 10, name: "Country",     gradient: "from-amber-600 to-yellow-800",  image: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=150&q=80" },
 ];
 
 export const LIBRARY_ALBUMS = [
