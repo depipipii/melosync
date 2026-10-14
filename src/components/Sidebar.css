@@ -1,0 +1,34 @@
+/* ==========================================================================
+   Sidebar Component Styles
+   File: src/components/Sidebar.css
+   Deskripsi: Styling khusus panel navigasi sidebar kiri
+   ========================================================================== */
+
+/* Glassmorphism background untuk sidebar */
+.sidebar-glass {
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.dark .sidebar-glass {
+  background-color: rgba(2, 6, 23, 0.45);
+}
+
+/* Transisi hover pada tombol navigasi sidebar */
+.sidebar-nav-btn {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-nav-btn:hover {
+  transform: translateX(3px);
+}
+
+/* Indikator tombol menu aktif */
+.sidebar-active-glow {
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08);
+}
+
+.dark .sidebar-active-glow {
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.06);
+}

@@ -1,0 +1,25 @@
+/* ==========================================================================
+   Profile Component Styles
+   File: src/components/Profile.css
+   Deskripsi: Styling khusus halaman profil pengguna dan modal edit
+   ========================================================================== */
+
+/* Efek Glassmorphism & Backdrop blur untuk Modal Edit Profil */
+.profile-modal-backdrop {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Transisi switch toggle di bagian Audio & Settings */
+.profile-toggle-switch {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Hover effect untuk pill preset Equalizer */
+.profile-eq-pill {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-eq-pill:hover {
+  transform: translateY(-2px);
+}
