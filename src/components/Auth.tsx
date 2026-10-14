@@ -140,6 +140,11 @@ export default function Auth({ isOpen, onClose, defaultMode = 'signin', reasonTe
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1.5 text-center max-w-xs">
               {isRegister ? 'Buat akun untuk simpan playlist & favoritmu' : 'Masuk untuk akses koleksi musik kamu'}
             </p>
+            {reasonText && (
+              <p className="mt-2 px-3 py-1.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-300 text-xs text-center font-medium">
+                {reasonText}
+              </p>
+            )}
           </div>
 
           <form onSubmit={handleAuth} className="space-y-4 relative z-10">
