@@ -241,3 +241,25 @@ Daftar inovasi fitur untuk pengembangan fase lanjutan (*future roadmap*) guna me
 
 11. **Visualizer Theme Selector**:  
     Saat pengguna beralih ke mode *Full Screen*, berikan panel opsi pemilih tema visualizer audio dinamis yang responsif terhadap frekuensi audio (bass, mid, treble), seperti tema *Retro 80s Arcade*, *Cyberpunk Neon City Grid*, atau *Minimalist Fluid Wave*.
+
+---
+
+## 7. Lampiran: Audit Otomatis (Playwright E2E) & Deployment (19 November 2026)
+
+Sebagai pelengkap pengujian manual di atas, dilakukan pengujian otomatis (*Automated End-to-End Testing*) menggunakan **Playwright (Chromium)** untuk memverifikasi stabilitas konsol, integritas aset jaringan, responsivitas *viewport*, serta kesiapan *deployment* produksi.
+
+### 7.1. Hasil Pengujian Otomatis
+
+| No | Area Pengujian Otomatis | Target Lingkungan | Status | Hasil & Catatan Teknis |
+| :-: | ----------------------- | ----------------- | :----: | ---------------------- |
+| 1 | **Akses Publik Produksi** | `https://vercel.app` | ❌ Fail | Terblokir layar otentikasi Vercel (`HTTP 403` pada `/api/jwt`) |
+| 2 | **Console & Runtime Error** | `http://localhost:5173` (`develop`) | ✅ Pass | **0 Console Error** & **0 Page Error** saat muat halaman maupun interaksi |
+| 3 | **Integritas Resource/API** | `http://localhost:5173` (`develop`) | ✅ Pass | **0 Broken Resource** (`HTTP 404/500`) terdeteksi |
+| 4 | **Interaksi Filter Mood & Search** | `http://localhost:5173` (`develop`) | ✅ Pass | Seluruh tab kategori dan kolom pencarian merespons input tanpa error |
+| 5 | **Mobile Overflow Check** | Viewport `375x812` (iPhone) | ✅ Pass | Tidak terjadi pergeseran horizontal (*no horizontal overflow*) |
+
+### 7.2. Temuan Kritis Deployment (DevOps)
+
+* **[DEPLOY-01] Vercel Deployment Protection Aktif (`HTTP 403`)**:
+  * **Deskripsi**: Tautan produksi `https://vercel.app` belum dapat diakses oleh pengguna umum maupun skrip pengujian eksternal karena tertahan halaman otentikasi *Agentic Infrastructure - Vercel*.
+  * **Tindakan yang Diperlukan**: Tim DevOps (**Deva**) perlu menonaktifkan fitur *Vercel Authentication / Deployment Protection* pada pengaturan proyek di dashboard Vercel agar rilis produksi dapat diakses secara publik dan diuji lintas perangkat secara langsung.
