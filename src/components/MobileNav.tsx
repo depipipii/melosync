@@ -1,4 +1,4 @@
-import { Home, Compass, Library, User } from 'lucide-react';
+import { Home, Compass, Library, User, UploadCloud } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 interface MobileNavProps {
@@ -7,6 +7,7 @@ interface MobileNavProps {
   showLyrics: boolean;
   setShowLyrics: (show: boolean) => void;
   session: any;
+  isAdminAuthenticated?: boolean;
 }
 
 interface NavItem {
@@ -22,12 +23,16 @@ export default function MobileNav({
   setActiveTab,
   showLyrics,
   setShowLyrics,
-  session
+  session,
+  isAdminAuthenticated = false
 }: MobileNavProps) {
   const navItems: NavItem[] = [
     { id: 'Home', label: 'Home', icon: Home },
     { id: 'Discover', label: 'Discover', icon: Compass },
     { id: 'Library', label: 'Library', icon: Library },
+    ...(isAdminAuthenticated
+      ? [{ id: 'Admin', label: 'Upload', icon: UploadCloud }]
+      : []),
     { id: 'Profile', label: 'Profile', icon: User, isGuest: !session },
   ];
 

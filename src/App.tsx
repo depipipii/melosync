@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Heart, MoreHorizontal, Clock, Search, Maximize2, Minimize2, LogOut, Lock, Moon, Sun, Plus, X, Music2, ChevronLeft, Trash2, Check } from 'lucide-react';
 
-import { MOODS, MOOD_GENRES, TRACKS, GENRES, LIBRARY_ARTISTS } from './data/musicData';
+import { MOODS, MOOD_GENRES, TRACKS, GENRES, LIBRARY_ARTISTS, getCustomTracks, saveCustomTracks } from './data/musicData';
+import type { Track } from './data/musicData';
 import Sidebar from './components/Sidebar';
 import PlayerBar from './components/PlayerBar';
 import Profile from './components/Profile';
 import MobileNav from './components/MobileNav';
 import Auth from './components/Auth';
+import AdminUpload from './components/AdminUpload';
+import AdminGate from './components/AdminGate';
 import {
   supabase,
   getDemoSession,
@@ -77,7 +80,15 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('Home');
   const [showLyrics, setShowLyrics] = useState(false);
 
-  const [currentTrack, setCurrentTrack] = useState(TRACKS[0]);
+  const [tracks, setTracks] = useState<Track[]>(() => {
+    const custom = getCustomTracks();
+    return [...TRACKS, ...custom];
+  });
+  const [currentTrack, setCurrentTrack] = useState<Track>(() => {
+    const custom = getCustomTracks();
+    const list = [...TRACKS, ...custom];
+    return list[0] || TRACKS[0];
+  });
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(75);
@@ -89,6 +100,75 @@ export default function App() {
   const [hasStartedPlaying, setHasStartedPlaying] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'Favorites' | 'Playlists' | 'Albums' | 'Artists'>('Favorites');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showTrackPickerForPlaylist, setShowTrackPickerForPlaylist] = useState<string | number | null>(null);
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerGenre, setPickerGenre] = useState('All');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Admin Session State (Stored in sessionStorage so it resets when browser tab closes)
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('melosync_admin_auth') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // Auto-authenticate if logged-in user email has admin role/prefix
+  useEffect(() => {
+    if (session?.user?.email) {
+      const emailLower = session.user.email.toLowerCase();
+      if (emailLower.startsWith('admin@') || emailLower.includes('admin.') || emailLower === 'admin@melosync.com') {
+        setIsAdminAuthenticated(true);
+        sessionStorage.setItem('melosync_admin_auth', 'true');
+      }
+    }
+  }, [session?.user?.email]);
+
+  // Handle direct URL route e.g. #admin, /admin, ?admin=true
+  useEffect(() => {
+    const handleRoute = () => {
+      const isHash = window.location.hash === '#admin';
+      const isSearch = window.location.search.includes('admin=true');
+      const isPath = window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/');
+      if (isHash || isSearch || isPath) {
+        setActiveTab('Admin');
+      }
+    };
+
+    handleRoute();
+    window.addEventListener('hashchange', handleRoute);
+    window.addEventListener('popstate', handleRoute);
+    return () => {
+      window.removeEventListener('hashchange', handleRoute);
+      window.removeEventListener('popstate', handleRoute);
+    };
+  }, []);
+
+  const handleAdminUnlock = useCallback((code: string): boolean => {
+    const validCodes = ['admin123', 'melosync2026', 'admin'];
+    if (validCodes.includes(code)) {
+      sessionStorage.setItem('melosync_admin_auth', 'true');
+      setIsAdminAuthenticated(true);
+      return true;
+    }
+    return false;
+  }, []);
+
+  const handleAdminLogout = useCallback(() => {
+    sessionStorage.removeItem('melosync_admin_auth');
+    setIsAdminAuthenticated(false);
+    setActiveTab('Home');
+    if (window.location.hash === '#admin') {
+      window.location.hash = '';
+    }
+  }, []);
+
+  const handleOpenAdmin = useCallback(() => {
+    setActiveTab('Admin');
+    window.location.hash = 'admin';
+    setShowLyrics(false);
+  }, []);
 
   const handleTabChange = useCallback((tab: string) => {
     if (tab === 'Favorites') {
@@ -253,65 +333,118 @@ export default function App() {
 
   const handlePlayPause = useCallback(() => setIsPlaying(prev => !prev), []);
 
+  const handleAddTrack = useCallback((newTrack: Track) => {
+    setTracks(prev => {
+      const updated = [newTrack, ...prev];
+      const customOnly = updated.filter(t => t.isCustom);
+      saveCustomTracks(customOnly);
+      return updated;
+    });
+    showToast(`Lagu "${newTrack.title}" berhasil diunggah!`);
+  }, []);
+
+  const handleDeleteTrack = useCallback((trackId: number) => {
+    setTracks(prev => {
+      const updated = prev.filter(t => t.id !== trackId);
+      const customOnly = updated.filter(t => t.isCustom);
+      saveCustomTracks(customOnly);
+      return updated;
+    });
+    if (currentTrack.id === trackId) {
+      setCurrentTrack(tracks[0] || TRACKS[0]);
+      setIsPlaying(false);
+      setProgress(0);
+    }
+    showToast('Lagu berhasil dihapus dari katalog');
+  }, [currentTrack.id, tracks]);
+
+  // Real Audio playback sync
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (currentTrack.audioUrl) {
+      if (audio.src !== currentTrack.audioUrl) {
+        audio.src = currentTrack.audioUrl;
+        audio.currentTime = progress;
+      }
+      audio.volume = volume / 100;
+      if (isPlaying) {
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
+    } else {
+      audio.pause();
+    }
+  }, [currentTrack, isPlaying, volume]);
+
   const handleNext = useCallback(() => {
     if (repeatMode === 'one') {
       setProgress(0);
+      if (audioRef.current && currentTrack.audioUrl) {
+        audioRef.current.currentTime = 0;
+      }
       setIsPlaying(true);
       return;
     }
 
-    const currentIndex = TRACKS.findIndex(t => t.id === currentTrack.id);
+    const currentIndex = tracks.findIndex(t => t.id === currentTrack.id);
     let nextIndex;
 
     if (isShuffle) {
       // Pick a random track that isn't the current one
-      let newIndex = Math.floor(Math.random() * TRACKS.length);
-      while (TRACKS.length > 1 && newIndex === currentIndex) {
-        newIndex = Math.floor(Math.random() * TRACKS.length);
+      let newIndex = Math.floor(Math.random() * tracks.length);
+      while (tracks.length > 1 && newIndex === currentIndex) {
+        newIndex = Math.floor(Math.random() * tracks.length);
       }
       nextIndex = newIndex;
     } else {
-      nextIndex = (currentIndex + 1) % TRACKS.length;
+      nextIndex = (currentIndex + 1) % tracks.length;
       
       // If repeatMode is 'none' and we've reached the end, stop playing
-      if (repeatMode === 'none' && currentIndex === TRACKS.length - 1) {
+      if (repeatMode === 'none' && currentIndex === tracks.length - 1) {
         setIsPlaying(false);
         setProgress(0);
+        if (audioRef.current) audioRef.current.pause();
         return;
       }
     }
 
-    const nextTrack = TRACKS[nextIndex];
+    const nextTrack = tracks[nextIndex] || TRACKS[0];
     setCurrentTrack(nextTrack);
     setProgress(0);
     setIsPlaying(true);
     recordPlay(nextTrack.id);
-  }, [currentTrack, recordPlay, isShuffle, repeatMode]);
+  }, [currentTrack, recordPlay, isShuffle, repeatMode, tracks]);
 
   const handlePrev = useCallback(() => {
     if (progress > 5) {
       setProgress(0);
+      if (audioRef.current && currentTrack.audioUrl) {
+        audioRef.current.currentTime = 0;
+      }
     } else {
-      const currentIndex = TRACKS.findIndex(t => t.id === currentTrack.id);
+      const currentIndex = tracks.findIndex(t => t.id === currentTrack.id);
       let prevIndex;
 
       if (isShuffle) {
-        let newIndex = Math.floor(Math.random() * TRACKS.length);
-        while (TRACKS.length > 1 && newIndex === currentIndex) {
-          newIndex = Math.floor(Math.random() * TRACKS.length);
+        let newIndex = Math.floor(Math.random() * tracks.length);
+        while (tracks.length > 1 && newIndex === currentIndex) {
+          newIndex = Math.floor(Math.random() * tracks.length);
         }
         prevIndex = newIndex;
       } else {
-        prevIndex = (currentIndex - 1 + TRACKS.length) % TRACKS.length;
+        prevIndex = (currentIndex - 1 + tracks.length) % tracks.length;
       }
 
-      const prevTrack = TRACKS[prevIndex];
+      const prevTrack = tracks[prevIndex] || TRACKS[0];
       setCurrentTrack(prevTrack);
       setProgress(0);
       setIsPlaying(true);
       recordPlay(prevTrack.id);
     }
-  }, [currentTrack, progress, recordPlay, isShuffle]);
+  }, [currentTrack, progress, recordPlay, isShuffle, tracks]);
 
   // Playback simulation & Listening Time Tracking
   useEffect(() => {
@@ -319,6 +452,13 @@ export default function App() {
     if (isPlaying) {
       timer = setInterval(() => {
         setProgress((prev) => {
+          // If real audio is playing, use audio current time
+          if (audioRef.current && currentTrack.audioUrl && !audioRef.current.paused) {
+            const audioCurrent = Math.floor(audioRef.current.currentTime);
+            listeningTimeRef.current += 1;
+            return audioCurrent;
+          }
+
           if (prev >= currentTrack.duration) {
             handleNext();
             return 0;
@@ -340,7 +480,7 @@ export default function App() {
     };
   }, [isPlaying, currentTrack, handleNext, syncListeningTime]);
 
-  const handleTrackSelect = (track: typeof TRACKS[0]) => {
+  const handleTrackSelect = (track: Track) => {
     setHasStartedPlaying(true);
     if (currentTrack.id === track.id) {
       handlePlayPause();
@@ -348,6 +488,9 @@ export default function App() {
       setCurrentTrack(track);
       setIsPlaying(true);
       setProgress(0);
+      if (audioRef.current && track.audioUrl) {
+        audioRef.current.currentTime = 0;
+      }
       recordPlay(track.id);
     }
   };
@@ -378,7 +521,7 @@ export default function App() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const filteredTracks = TRACKS.filter(t => {
+  const filteredTracks = tracks.filter(t => {
     const associatedGenres = MOOD_GENRES[activeMood] ?? [];
     const matchesMood = activeMood === 'All'
       || t.mood === activeMood
@@ -468,14 +611,14 @@ export default function App() {
   // Library: liked albums (unique albums from favorited tracks)
   const likedAlbums = Array.from(
     new Map(
-      TRACKS.filter(t => favorites.includes(t.id)).map(t => [t.album, t])
+      tracks.filter(t => favorites.includes(t.id)).map(t => [t.album, t])
     ).values()
   );
 
   // Library: liked artists (unique artists from favorited tracks)
   const likedArtists = Array.from(
     new Map(
-      TRACKS.filter(t => favorites.includes(t.id)).map(t => [t.artist, t])
+      tracks.filter(t => favorites.includes(t.id)).map(t => [t.artist, t])
     ).values()
   );
 
@@ -505,6 +648,8 @@ export default function App() {
         showLyrics={showLyrics}
         setShowLyrics={setShowLyrics}
         session={session}
+        isAdminAuthenticated={isAdminAuthenticated}
+        onOpenAdmin={handleOpenAdmin}
       />
 
       {/* Main Content Area */}
@@ -703,7 +848,7 @@ export default function App() {
             </div>
           ) : activeTab === 'Discover' ? (
             <div className="animate-in fade-in duration-700 space-y-12">
-              <div onClick={() => handleTrackSelect(TRACKS[0])} className="w-full h-64 md:h-80 rounded-[2rem] overflow-hidden relative shadow-2xl group cursor-pointer border border-slate-200 dark:border-white/10">
+              <div onClick={() => handleTrackSelect(tracks[0] || TRACKS[0])} className="w-full h-64 md:h-80 rounded-[2rem] overflow-hidden relative shadow-2xl group cursor-pointer border border-slate-200 dark:border-white/10">
                 <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=1200&q=80" alt="Global Top 50" className="w-full h-full object-cover group-hover:scale-105 group-hover:blur-[2px] transition-all duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent dark:from-slate-950 dark:via-slate-950/40 dark:to-transparent flex flex-col justify-end p-8">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 scale-75 group-hover:scale-100 border border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.3)]">
@@ -722,7 +867,7 @@ export default function App() {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                   {GENRES.map(genre => (
-                    <div key={genre.id} onClick={() => handleTrackSelect(TRACKS[(genre.id - 1) % TRACKS.length])} className={`h-32 md:h-40 rounded-3xl bg-gradient-to-br ${genre.gradient} p-4 md:p-6 relative overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group border border-white/10`}>
+                    <div key={genre.id} onClick={() => handleTrackSelect(tracks[(genre.id - 1) % tracks.length] || TRACKS[0])} className={`h-32 md:h-40 rounded-3xl bg-gradient-to-br ${genre.gradient} p-4 md:p-6 relative overflow-hidden shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group border border-white/10`}>
                       <h4 className="text-lg md:text-xl font-bold text-white drop-shadow-md relative z-10 w-2/3 leading-tight">{genre.name}</h4>
                       <img src={genre.image} alt={genre.name} className="absolute -bottom-2 -right-4 w-24 h-24 md:w-32 md:h-32 object-cover rounded-xl shadow-[0_8px_20px_rgba(0,0,0,0.5)] rotate-[25deg] group-hover:rotate-[15deg] group-hover:scale-110 transition-all duration-500" />
                     </div>
@@ -741,7 +886,7 @@ export default function App() {
                     { id: 5, name: "Melo", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80" },
                     { id: 6, name: "Stellar", image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=300&q=80" }
                   ].map((artist) => (
-                    <div key={artist.id} onClick={() => handleTrackSelect(TRACKS[(artist.id - 1) % TRACKS.length])} className="flex flex-col items-center gap-3 snap-start group cursor-pointer">
+                    <div key={artist.id} onClick={() => handleTrackSelect(tracks[(artist.id - 1) % tracks.length] || TRACKS[0])} className="flex flex-col items-center gap-3 snap-start group cursor-pointer">
                       <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden relative shadow-lg border-2 border-transparent group-hover:border-violet-600 dark:group-hover:border-violet-500 transition-colors p-1">
                         <img src={artist.image} alt={artist.name} className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-1 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
@@ -764,6 +909,9 @@ export default function App() {
                 formatTime={formatTime}
                 session={session as any}
                 userPlaylists={userPlaylists}
+                tracks={tracks}
+                isAdminAuthenticated={isAdminAuthenticated}
+                onOpenAdmin={handleOpenAdmin}
                 onOpenFavoritesInLibrary={() => {
                   setActiveTab('Library');
                   setLibraryTab('Favorites');
@@ -786,6 +934,27 @@ export default function App() {
                   Sign In to MeloSync
                 </button>
               </div>
+            )
+          ) : activeTab === 'Admin' ? (
+            isAdminAuthenticated ? (
+              <AdminUpload
+                tracks={tracks}
+                onAddTrack={handleAddTrack}
+                onDeleteTrack={handleDeleteTrack}
+                onPlayTrack={handleTrackSelect}
+                currentTrackId={currentTrack.id}
+                isPlaying={isPlaying}
+                onLogoutAdmin={handleAdminLogout}
+              />
+            ) : (
+              <AdminGate
+                onUnlock={handleAdminUnlock}
+                onBackToApp={() => {
+                  setActiveTab('Home');
+                  if (window.location.hash === '#admin') window.location.hash = '';
+                }}
+                currentUserEmail={session?.user?.email}
+              />
             )
           ) : (
             <div className="animate-in fade-in duration-700">
@@ -853,7 +1022,7 @@ export default function App() {
                   ) : (
                     <div className="space-y-1">
                       {(() => {
-                        const favTracks = TRACKS.filter(t => favorites.includes(t.id) && (
+                        const favTracks = tracks.filter(t => favorites.includes(t.id) && (
                           t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           t.artist.toLowerCase().includes(searchQuery.toLowerCase())
                         ));
@@ -965,7 +1134,7 @@ export default function App() {
                               <button
                                 onClick={() => {
                                   const currentIds = selectedPlaylist.trackIds || selectedPlaylist.track_ids || [];
-                                  const first = TRACKS.find(t => currentIds.includes(t.id));
+                                  const first = tracks.find(t => currentIds.includes(t.id));
                                   if (first) handleTrackSelect(first);
                                 }}
                                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-all active:scale-95 shadow-lg shadow-violet-900/20 cursor-pointer"
@@ -973,6 +1142,12 @@ export default function App() {
                                 <Play className="w-4 h-4 fill-current" /> Putar Semua
                               </button>
                             )}
+                            <button
+                              onClick={() => setShowTrackPickerForPlaylist(selectedPlaylist.id)}
+                              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600/10 dark:bg-white/10 hover:bg-violet-600/20 text-violet-600 dark:text-violet-300 text-sm font-semibold transition-all active:scale-95 cursor-pointer border border-violet-500/20"
+                            >
+                              <Plus className="w-4 h-4" /> Tambah Lagu
+                            </button>
                             <button
                               onClick={() => handleDeletePlaylist(selectedPlaylist!.id)}
                               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-sm font-medium transition-all active:scale-95 cursor-pointer"
@@ -987,12 +1162,19 @@ export default function App() {
                       <div className="space-y-1">
                         {(() => {
                           const currentIds = selectedPlaylist.trackIds || selectedPlaylist.track_ids || [];
-                          const pTracks = TRACKS.filter(t => currentIds.includes(t.id));
+                          const pTracks = tracks.filter(t => currentIds.includes(t.id));
                           if (pTracks.length === 0) {
                             return (
-                              <div className="text-center py-16 text-slate-500 dark:text-slate-400 space-y-2">
-                                <p className="font-semibold text-slate-700 dark:text-slate-300">Playlist ini masih kosong</p>
-                                <p className="text-sm">Klik ikon opsi (⋯) pada lagu di Beranda atau Favorit untuk menambahkan lagu ke playlist ini.</p>
+                              <div className="text-center py-16 text-slate-500 dark:text-slate-400 space-y-3">
+                                <Music2 className="w-12 h-12 mx-auto text-violet-400 opacity-60" />
+                                <p className="font-semibold text-slate-700 dark:text-slate-300 text-lg">Playlist ini masih kosong</p>
+                                <p className="text-sm max-w-sm mx-auto">Pilih lagu dari katalog atau unggahan admin untuk melengkapi playlist kamu.</p>
+                                <button
+                                  onClick={() => setShowTrackPickerForPlaylist(selectedPlaylist.id)}
+                                  className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white text-sm font-bold transition-all shadow-lg shadow-violet-900/20 active:scale-95 cursor-pointer"
+                                >
+                                  <Plus className="w-4 h-4" /> Pilih Lagu untuk Playlist Ini
+                                </button>
                               </div>
                             );
                           }
@@ -1327,6 +1509,168 @@ export default function App() {
             </div>
           )}
 
+          {/* === MODAL PILIH LAGU UNTUK PLAYLIST (TRACK PICKER) === */}
+          {showTrackPickerForPlaylist !== null && (() => {
+            const targetPlaylist = userPlaylists.find(p => String(p.id) === String(showTrackPickerForPlaylist));
+            const currentIds = targetPlaylist?.trackIds || targetPlaylist?.track_ids || [];
+
+            const filteredPickerTracks = tracks.filter(t => {
+              const matchesSearch = t.title.toLowerCase().includes(pickerSearch.toLowerCase()) ||
+                t.artist.toLowerCase().includes(pickerSearch.toLowerCase()) ||
+                t.genre.toLowerCase().includes(pickerSearch.toLowerCase());
+              if (pickerGenre === 'All') return matchesSearch;
+              return matchesSearch && t.genre.toLowerCase() === pickerGenre.toLowerCase();
+            });
+
+            return (
+              <div
+                className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+                onClick={() => {
+                  setShowTrackPickerForPlaylist(null);
+                  setPickerSearch('');
+                }}
+              >
+                <div
+                  className="w-full max-w-xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between mb-4 shrink-0">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Music2 className="w-5 h-5 text-violet-500" /> Pilih Lagu untuk "{targetPlaylist?.name || 'Playlist'}"
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Klik tombol tambah untuk memasukkan lagu langsung ke playlist ini.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowTrackPickerForPlaylist(null);
+                        setPickerSearch('');
+                      }}
+                      className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Search and Genre Filters */}
+                  <div className="space-y-3 mb-4 shrink-0">
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        autoFocus
+                        value={pickerSearch}
+                        onChange={(e) => setPickerSearch(e.target.value)}
+                        placeholder="Cari judul lagu, artis, atau genre..."
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide text-xs">
+                      {['All', 'Pop', 'Indie', 'R&B', 'Rock', 'EDM', 'Jazz'].map(g => (
+                        <button
+                          key={g}
+                          onClick={() => setPickerGenre(g)}
+                          className={`px-3 py-1 rounded-full whitespace-nowrap font-medium transition-all cursor-pointer ${
+                            pickerGenre === g
+                              ? 'bg-violet-600 text-white shadow-sm'
+                              : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                          }`}
+                        >
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tracks list */}
+                  <div className="overflow-y-auto space-y-2 flex-1 pr-1 divide-y divide-slate-100 dark:divide-white/5">
+                    {filteredPickerTracks.map((track) => {
+                      const isAdded = currentIds.includes(track.id);
+                      return (
+                        <div
+                          key={track.id}
+                          className="pt-2 first:pt-0 flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-white/10">
+                              <img src={track.cover} alt={track.title} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                {track.title}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                <span className="truncate">{track.artist}</span>
+                                <span>·</span>
+                                <span className="px-1.5 py-0.2 rounded text-[10px] bg-violet-500/10 text-violet-600 dark:text-violet-400 font-medium">
+                                  {track.genre}
+                                </span>
+                                {track.isCustom && (
+                                  <span className="px-1.5 py-0.2 rounded text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">
+                                    Upload
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => targetPlaylist && handleToggleTrackInPlaylist(targetPlaylist.id, track.id)}
+                            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                              isAdded
+                                ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-rose-500/15 hover:border-rose-500/30 hover:text-rose-600'
+                                : 'bg-violet-600 hover:bg-violet-500 text-white shadow-md shadow-violet-900/20 active:scale-95'
+                            }`}
+                          >
+                            {isAdded ? (
+                              <>
+                                <Check className="w-3.5 h-3.5" /> Sudah Ada
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-3.5 h-3.5" /> Tambah
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })}
+
+                    {filteredPickerTracks.length === 0 && (
+                      <div className="py-12 text-center text-slate-400 text-xs">
+                        Tidak ada lagu yang sesuai dengan pencarian.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between shrink-0">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      Total {currentIds.length} lagu di playlist ini
+                    </span>
+                    <button
+                      onClick={() => {
+                        setShowTrackPickerForPlaylist(null);
+                        setPickerSearch('');
+                      }}
+                      className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-800 dark:text-white text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Selesai
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Hidden audio element for real audio file playback */}
+          <audio
+            ref={audioRef}
+            onEnded={handleNext}
+            className="hidden"
+          />
+
           {/* Toast Notification */}
           {playlistToast && (
             <div className="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-[250] bg-slate-900/90 dark:bg-slate-800/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-white/10 text-sm font-medium animate-in fade-in slide-in-from-bottom-3 duration-200 flex items-center gap-2">
@@ -1374,6 +1718,7 @@ export default function App() {
         showLyrics={showLyrics}
         setShowLyrics={setShowLyrics}
         session={session}
+        isAdminAuthenticated={isAdminAuthenticated}
       />
 
       {/* Auth Modal */}

@@ -1,3 +1,24 @@
+export interface LyricLine {
+  time: number;
+  text: string;
+}
+
+export interface Track {
+  id: number;
+  title: string;
+  artist: string;
+  album: string;
+  duration: number;
+  mood: string;
+  genre: string;
+  glowPrimary?: string;
+  glowSecondary?: string;
+  cover: string;
+  audioUrl?: string;
+  lyrics?: LyricLine[];
+  isCustom?: boolean;
+}
+
 export const MOODS = ['All', 'Belajar', 'Santai', 'Olahraga', 'Tidur', 'Semangat', 'Fokus'];
 
 // Pemetaan mood → genre yang terasosiasi
@@ -91,6 +112,65 @@ export const TRACKS = [
       { time: 35, text: "Just the road and empty thoughts," },
       { time: 50, text: "In the tangled web we caught." }
     ]
+  },
+  {
+    id: 5,
+    title: "Disenchanted",
+    artist: "My Chemical Romance",
+    album: "The Black Parade",
+    duration: 295,
+    mood: "Semangat",
+    genre: "Rock",
+    glowPrimary: "bg-amber-600/40",
+    glowSecondary: "bg-rose-700/30",
+    cover: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?auto=format&fit=crop&w=600&q=80",
+    lyrics: [
+      { time: 0, text: "(Acoustic Guitar Intro)" },
+      { time: 20, text: "Well, I was there on the day they sold the cause for the queen" },
+      { time: 25, text: "And when the lights all went out, we watched our lives on the screen" },
+      { time: 31, text: "I hate the ending myself, but it started with an alright scene" },
+      { time: 42, text: "It was the roar of the crowd that gave me heartache to sing" },
+      { time: 48, text: "It was a lie when they smiled and said, 'You won't feel a thing'" },
+      { time: 53, text: "And as we ran from the cops, we laughed so hard it would sting" },
+      { time: 61, text: "Yeah, yeah, oh" },
+      { time: 66, text: "If I'm so wrong (so wrong, so wrong)" },
+      { time: 70, text: "How can you listen all night long? (night long, night long)" },
+      { time: 77, text: "Now will it matter after I'm gone?" },
+      { time: 81, text: "Because you never learn a goddamn thing" },
+      { time: 87, text: "You're just a sad song with nothing to say" },
+      { time: 92, text: "About a lifelong wait for a hospital stay" },
+      { time: 97, text: "And if you think that I'm wrong" },
+      { time: 101, text: "This never meant nothing to ya" },
+      { time: 109, text: "I spent my high school career spit on and shoved to agree" },
+      { time: 114, text: "So I could watch all my heroes sell a car on TV" },
+      { time: 119, text: "Bring out the old guillotine, we'll show 'em what we all mean" },
+      { time: 127, text: "Yeah, yeah, oh" },
+      { time: 132, text: "If I'm so wrong (so wrong, so wrong)" },
+      { time: 137, text: "How can you listen all night long? (night long, night long)" },
+      { time: 143, text: "Now will it matter long after I'm gone?" },
+      { time: 147, text: "Because you never learn a goddamn thing" },
+      { time: 153, text: "You're just a sad song with nothing to say" },
+      { time: 158, text: "About a lifelong wait for a hospital stay" },
+      { time: 164, text: "And if you think that I'm wrong" },
+      { time: 167, text: "This never meant nothing to ya" },
+      { time: 174, text: "So go, go away, just go, run away" },
+      { time: 185, text: "But where did you run to? And where did you hide?" },
+      { time: 193, text: "Go find another way, price you pay" },
+      { time: 202, text: "Whoa, whoa, whoa, whoa..." },
+      { time: 221, text: "You're just a sad song with nothing to say" },
+      { time: 226, text: "About a lifelong wait for a hospital stay" },
+      { time: 232, text: "And if you think that I'm wrong" },
+      { time: 236, text: "This never meant nothing to ya" },
+      { time: 242, text: "You're just a sad song with nothing to say" },
+      { time: 248, text: "About a lifelong wait for a hospital stay" },
+      { time: 253, text: "And if you think that I'm wrong" },
+      { time: 257, text: "This never meant nothing to ya" },
+      { time: 263, text: "At all..." },
+      { time: 269, text: "At all..." },
+      { time: 274, text: "At all..." },
+      { time: 280, text: "At all..." },
+      { time: 288, text: "(Outro - Acoustic Guitar fades)" }
+    ]
   }
 ];
 
@@ -133,3 +213,25 @@ export const LIBRARY_ARTISTS = [
   { id: 5, name: "Melo", genre: "Chillhop & Beats", monthlyListeners: "620K listeners", image: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80" },
   { id: 6, name: "Stellar", genre: "Neo-Classical Ambient", monthlyListeners: "1.8M listeners", image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80" },
 ];
+
+export const CUSTOM_TRACKS_STORAGE_KEY = 'melosync_custom_tracks';
+
+export const getCustomTracks = (): Track[] => {
+  try {
+    const raw = localStorage.getItem(CUSTOM_TRACKS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveCustomTracks = (tracks: Track[]) => {
+  try {
+    localStorage.setItem(CUSTOM_TRACKS_STORAGE_KEY, JSON.stringify(tracks));
+  } catch (e) {
+    console.error('Failed to save custom tracks to localStorage:', e);
+  }
+};
+
