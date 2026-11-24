@@ -17,18 +17,22 @@ import {
   Loader2
 } from 'lucide-react';
 import { TRACKS, LIBRARY_PLAYLISTS, LIBRARY_ARTISTS } from '../data/musicData';
+import type { Track } from '../data/musicData';
 import { supabase, USE_DEMO_AUTH } from '../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
 interface ProfileProps {
   favorites: number[];
-  handleTrackSelect: (track: typeof TRACKS[0]) => void;
+  handleTrackSelect: (track: Track) => void;
   toggleFavorite: (id: number) => void;
   setActiveTab: (tab: string) => void;
   formatTime: (seconds: number) => string;
   session: Session;
   userPlaylists?: { id: string | number; name: string; trackIds?: number[]; track_ids?: number[]; createdAt?: string }[];
   onOpenFavoritesInLibrary?: () => void;
+  tracks?: Track[];
+  isAdminAuthenticated?: boolean;
+  onOpenAdmin?: () => void;
 }
 
 export default function Profile({
@@ -39,8 +43,12 @@ export default function Profile({
   formatTime,
   session,
   userPlaylists,
-  onOpenFavoritesInLibrary
+  onOpenFavoritesInLibrary,
+  tracks: allTracksProp,
+  isAdminAuthenticated = false,
+  onOpenAdmin,
 }: ProfileProps) {
+  const activeTracksList = allTracksProp || TRACKS;
   const [profileTab, setProfileTab] = useState<'Overview' | 'Saved Music' | 'Audio & Settings'>('Overview');
   const [loading, setLoading] = useState(true);
   const [saving, setLoadingSaving] = useState(false);
@@ -245,7 +253,7 @@ export default function Profile({
     }
   };
 
-  const favoriteTracks = TRACKS.filter(t => favorites.includes(t.id));
+  const favoriteTracks = activeTracksList.filter(t => favorites.includes(t.id));
 
   if (loading) {
     return (
@@ -746,6 +754,25 @@ export default function Profile({
                     autoPlaySimilar ? 'translate-x-6' : 'translate-x-0'
                   }`}
                 />
+              </button>
+            </div>
+
+            {/* Admin Portal Settings Card */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-white/5">
+              <div>
+                <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">Studio Administrator</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">
+                  {isAdminAuthenticated
+                    ? 'Mode admin aktif. Anda dapat mengunggah dan mengelola lagu.'
+                    : 'Akses khusus untuk administrator mengunggah lagu.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-violet-600/10 dark:bg-white/10 hover:bg-violet-600 hover:text-white text-violet-600 dark:text-violet-300 transition-all border border-violet-500/20 cursor-pointer self-start sm:self-auto"
+              >
+                {isAdminAuthenticated ? 'Buka Studio Admin' : 'Masuk Portal Admin'}
               </button>
             </div>
           </div>

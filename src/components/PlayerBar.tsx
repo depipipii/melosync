@@ -2,10 +2,10 @@ import {
   Play, Pause, SkipBack, SkipForward, Volume2, 
   Heart, Shuffle, Repeat, Mic2, VolumeX, Maximize2, Minimize2 
 } from 'lucide-react';
-import { TRACKS } from '../data/musicData';
+import type { Track } from '../data/musicData';
 
 interface PlayerBarProps {
-  currentTrack: typeof TRACKS[0];
+  currentTrack: Track;
   isPlaying: boolean;
   progress: number;
   volume: number;
