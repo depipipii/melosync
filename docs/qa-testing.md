@@ -263,3 +263,35 @@ Sebagai pelengkap pengujian manual di atas, dilakukan pengujian otomatis (*Autom
 * **[DEPLOY-01] Vercel Deployment Protection Aktif (`HTTP 403`)**:
   * **Deskripsi**: Tautan produksi `https://vercel.app` belum dapat diakses oleh pengguna umum maupun skrip pengujian eksternal karena tertahan halaman otentikasi *Agentic Infrastructure - Vercel*.
   * **Tindakan yang Diperlukan**: Tim DevOps (**Deva**) perlu menonaktifkan fitur *Vercel Authentication / Deployment Protection* pada pengaturan proyek di dashboard Vercel agar rilis produksi dapat diakses secara publik dan diuji lintas perangkat secara langsung.
+
+
+# Laporan Audit QA & Daftar Perbaikan MeloSync
+
+- **Tanggal Pengujian:** 24 November 2026
+- **Target Environment:** Production (`https://vercel.app`)
+- **Metode:** Automated End-to-End Audit (Playwright) & Catatan Internal Tim
+- **Status Keseluruhan:** ❌ Failed (5 Automated Assertions Failed + 3 Pending Team Notes)
+
+---
+
+## 1. Hasil Pengujian Otomatis (Playwright)
+
+| No | Skenario Pengujian | Status | Detail Temuan |
+| :--- | :--- | :---: | :--- |
+| 1 | Pemutaran Lagu Pertama | ❌ Failed | Elemen `<audio>` tidak aktif dan tombol kontrol tidak berubah menjadi `Pause` setelah lagu diklik. |
+| 2 | Aksesibilitas Tombol Lirik | ❌ Failed | Tombol ikon Lirik belum memiliki atribut `title` atau `aria-label`. |
+| 3 | Tombol Mode Fullscreen | ✅ Passed | Tombol tersedia dan dapat dideteksi dengan baik. |
+| 4 | Aksesibilitas Tombol Favorit | ❌ Failed | Tombol ikon Favorit belum memiliki atribut `title` atau `aria-label`. |
+| 5 | Menu Riwayat Lagu | ❌ Failed | Navigasi atau daftar **Riwayat** tidak ditemukan di tampilan antarmuka. |
+| 6 | Pencarian Negatif | ✅ Passed | Input kata kunci acak ditangani dengan aman tanpa aplikasi *crash*. |
+| 7 | Pengaturan Audio (Profil) | ❌ Failed | Opsi pengaturan audio (`Equalizer` / `Crossfade` / `Lossless`) tidak muncul di halaman Profil. |
+| 8 | Responsivitas Mobile (375px) | ✅ Passed | Tampilan mobile rapi tanpa *horizontal scroll*. |
+| 9 | Console & Runtime Error | ✅ Passed | Tidak ada *error* pada console browser (`0 errors`). |
+
+---
+
+## 2. Daftar Perbaikan Tambahan (Catatan Internal Tim)
+
+1. **Database Musik:** File/data musik belum terhubung dan masuk ke dalam database produksi.
+2. **Cover Album:** Aset gambar *cover album* belum muncul pada daftar lagu maupun pemutar utama.
+3. **Email Limit (Autentikasi):** Terjadi pembatasan kuota pengiriman email (*email limit*) pada proses autentikasi pengguna.
